@@ -37,6 +37,24 @@ parts:
       - bin/powershell-wrapper
       - meta/buildinfo-url
 
+  libpsl-native:
+    after: [launcher]
+    plugin: nil
+    source: https://github.com/powershell/powershell-native.git
+    source-type: git
+    build-packages:
+      - cmake
+      - git
+
+    override-build: |
+      cd ${CRAFT_PART_BUILD}/src/libpsl-native
+      cmake -DCMAKE_BUILD_TYPE=Release .
+      make -j$(nproc)
+
+      mkdir --parents ${CRAFT_PART_INSTALL}/opt/powershell
+      cp -Lp ${CRAFT_PART_BUILD}/src/powershell-unix/libpsl-native.so \
+        ${CRAFT_PART_INSTALL}/opt/powershell
+
   powershell:
     after: [launcher]
     plugin: nil
@@ -46,11 +64,10 @@ parts:
       - enable-patchelf
     build-packages:
       - dotnet-sdk-9.0
+      - dotnet-sdk-9.0-source-built-artifacts
       - git
       - jq
       - libicu70
-    build-snaps:
-      - powershell
     stage-packages:
       - libicu70
       - liblttng-ust1
@@ -61,13 +78,13 @@ parts:
       /usr/bin/dotnet --info
 
       if [ "${CRAFT_ARCH_BUILD_FOR}" = "amd64" ]; then
-        target_rid=linux-x64
+        target_rid=ubuntu.22.04-x64
       elif [ "${CRAFT_ARCH_BUILD_FOR}" = "arm64" ]; then
-        target_rid=linux-arm64
+        target_rid=ubuntu.22.04-arm64
       elif [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ]; then
-        target_rid=linux-ppc64le
+        target_rid=ubuntu.22.04-ppc64le
       elif [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
-        target_rid=linux-s390x
+        target_rid=ubuntu.22.04-s390x
       else
         echo "Unknown architecture (${CRAFT_ARCH_BUILD_FOR})"
         exit 1
@@ -85,11 +102,44 @@ parts:
       jq '.sdk.version = "'$latest_dotnet_sdk_version'"' ${CRAFT_PART_BUILD}/global.json > tmp.json
       mv tmp.json ${CRAFT_PART_BUILD}/global.json
 
-      /snap/bin/powershell -Command \
-        "Import-Module ${CRAFT_PART_BUILD}/build.psm1; Start-PSBuild -UseNuGetOrg -Runtime ${target_rid} -Configuration Release"
+      pushd ${CRAFT_PART_BUILD}/src/ResGen
+      /usr/bin/dotnet restore
+      /usr/bin/dotnet run
+      popd
+
+      pushd ${CRAFT_PART_BUILD}/src
+      targetFile="Microsoft.PowerShell.SDK/obj/Microsoft.PowerShell.SDK.csproj.TypeCatalog.targets"
+      mkdir --parents Microsoft.PowerShell.SDK/obj
+      cat > $targetFile <<-"EOF"
+      <Project>
+          <Target Name="_GetDependencies"
+                  DependsOnTargets="ResolveAssemblyReferencesDesignTime">
+              <ItemGroup>
+                  <_RefAssemblyPath Include="%(_ReferencesFromRAR.HintPath)%3B"  Condition=" '%(_ReferencesFromRAR.NuGetPackageId)' != 'Microsoft.Management.Infrastructure' "/>
+              </ItemGroup>
+              <WriteLinesToFile File="$(_DependencyFile)" Lines="@(_RefAssemblyPath)" Overwrite="true" />
+          </Target>
+      </Project>
+      EOF
+      /usr/bin/dotnet msbuild Microsoft.PowerShell.SDK/Microsoft.PowerShell.SDK.csproj /t:_GetDependencies "/property:DesignTimeBuild=true;_DependencyFile=$(pwd)/TypeCatalogGen/powershell.inc" /nologo
+      popd
+
+      pushd ${CRAFT_PART_BUILD}/src/TypeCatalogGen
+      /usr/bin/dotnet restore
+      /usr/bin/dotnet run ../System.Management.Automation/CoreCLR/CorePsTypeCatalog.cs powershell.inc
+      popd
+
+      pushd ${CRAFT_PART_BUILD}/src/powershell-unix
+      mkdir nugets
+      cd nugets
+      tar xzf /usr/lib/dotnet/source-built-artifacts/Private.SourceBuilt.Artifacts.*.tar.gz
+      cd ..
+      /usr/bin/dotnet restore -s file://$(pwd)/nugets
+      /usr/bin/dotnet build -c Release -r ${target_rid} --self-contained --source file://$(pwd)/nugets
+      popd
 
       mkdir --parents ${CRAFT_PART_INSTALL}/opt/powershell
-      cp -RLp ${CRAFT_PART_BUILD}/src/powershell-unix/bin/Release/${target_framework}/${target_rid}/publish/* \
+      cp -RLp ${CRAFT_PART_BUILD}/src/powershell-unix/bin/Release/${target_framework}/${target_rid}/* \
         ${CRAFT_PART_INSTALL}/opt/powershell
 
 apps:
