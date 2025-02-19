@@ -1,5 +1,5 @@
-name: powershell
-icon: assets/icon-stable.png
+name: powershell-preview
+icon: assets/icon-preview.png
 adopt-info: powershell
 summary: PowerShell for every system!
 description: |
@@ -8,7 +8,7 @@ description: |
   See https://docs.microsoft.com/powershell/scripting/powershell-support-lifecycle for support details.
 
 base: core22
-grade: devel
+grade: stable
 confinement: classic
 
 package-repositories:
@@ -93,7 +93,7 @@ parts:
         ${CRAFT_PART_INSTALL}/opt/powershell
 
 apps:
-  powershell:
+  powershell-preview:
     command: bin/powershell-wrapper
     environment:
       LD_LIBRARY_PATH: $SNAP/usr/lib/x86_64-linux-gnu:$SNAP/lib/x86_64-linux-gnu
