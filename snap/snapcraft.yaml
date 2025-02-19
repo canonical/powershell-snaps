@@ -1,5 +1,5 @@
 name: powershell
-icon: assets/icon.png
+icon: assets/icon-stable.png
 adopt-info: powershell
 summary: PowerShell for every system!
 description: |
