@@ -49,6 +49,7 @@ parts:
       - git
       - jq
       - libicu70
+      - patchelf
     build-snaps:
       - powershell
     stage-packages:
@@ -92,10 +93,12 @@ parts:
       cp -RLp ${CRAFT_PART_BUILD}/src/powershell-unix/bin/Release/${target_framework}/${target_rid}/publish/* \
         ${CRAFT_PART_INSTALL}/opt/powershell
 
+      patchelf --force-rpath --set-rpath \$ORIGIN/../../usr/lib/x86_64-linux-gnu:\$ORIGIN/../../lib/x86_64-linux-gnu \
+          ${CRAFT_PART_INSTALL}/opt/powershell/pwsh
+
 apps:
   powershell-preview:
     command: bin/powershell-wrapper
     environment:
-      LD_LIBRARY_PATH: $SNAP/usr/lib/x86_64-linux-gnu:$SNAP/lib/x86_64-linux-gnu
       POWERSHELL_DISTRIBUTION_CHANNEL: PSSnap
       CLR_ICU_VERSION_OVERRIDE: 70.1
