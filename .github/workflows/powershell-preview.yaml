@@ -2,7 +2,7 @@ name: powershell-preview
 
 on:
   push:
-    branches: [preview, feat/preview-actions-publishing]
+    branches: preview
   pull_request:
     branches: preview
   schedule:
