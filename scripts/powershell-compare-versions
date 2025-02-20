@@ -31,16 +31,73 @@ if [ -z "$snap_name" ] || [ -z "$buildinfo_url" ]; then
     usage
 fi
 
-# Query the snap store for the latest version of the powershell-preview snap
+# Function to compare versions
+compare_versions() {
+    local version1="$1"
+    local version2="$2"
+
+    if ! [[ $version1 =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?(\.[0-9]+)?$ ]]; then
+        echo "Invalid version format: $version1"
+        return 1
+    fi
+    if ! [[ $version2 =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?(\.[0-9]+)?$ ]]; then
+        echo "Invalid version format: $version2"
+        return 1
+    fi
+
+    # Split versions into components
+    IFS='.-' read -r -a v1 <<< "$version1"
+    IFS='.-' read -r -a v2 <<< "$version2"
+
+    # Compare each component
+    for i in {0..2}; do
+        if [[ ${v1[i]} -lt ${v2[i]} ]]; then
+            return 1
+        elif [[ ${v1[i]} -gt ${v2[i]} ]]; then
+            return 2
+        fi
+    done
+
+    # Handle cases where one version is stable and the other is a preview
+    if [[ ${#v1[@]} -gt 3 && ${#v2[@]} -le 3 ]]; then
+        return 1
+    elif [[ ${#v1[@]} -le 3 && ${#v2[@]} -gt 3 ]]; then
+        return 2
+    fi
+
+    # Compare preview components if both versions have them
+    if [[ ${#v1[@]} -gt 3 && ${#v2[@]} -gt 3 ]]; then
+        if [[ ${v1[3]} < ${v2[3]} ]]; then
+            return 1
+        elif [[ ${v1[3]} > ${v2[3]} ]]; then
+            return 2
+        fi
+    fi
+
+    return 0
+}
+
+# Query the snap store for the latest version of the snap
 latest_store_version=$(snap info "$snap_name" | grep -m1 "latest/edge:" | awk '{print $2}')
-# Query the buildinfo URL for latest preview version
+# Query the buildinfo URL for latest Microsoft version
 latest_buildinfo_version=$(curl --silent --location "$buildinfo_url" | jq --raw-output '.ReleaseTag' | sed 's/^v//')
 
+if [ -z "$latest_store_version" ] || [ -z "$latest_buildinfo_version" ]; then
+    echo "Failed to get the latest version of the snap or the latest version from the buildinfo"
+    exit 1
+fi
+
 # Compare the two versions
-if dpkg --compare-versions "$latest_store_version" "lt" "$latest_buildinfo_version"; then
+compare_versions "$latest_store_version" "$latest_buildinfo_version"
+result=$?
+
+if [[ $result -eq 1 ]]; then
     echo "The latest version in the store ($latest_store_version) is older than the latest version in the buildinfo ($latest_buildinfo_version)"
     exit 0
+elif [[ $result -eq 2 ]]; then
+    echo "The latest version in the store ($latest_store_version) is newer than the latest version in the buildinfo ($latest_buildinfo_version)"
+    exit 1
 else
-    echo "The latest version in the store ($latest_store_version) is the same or newer than the latest version in the buildinfo ($latest_buildinfo_version)"
+    echo "The latest version in the store ($latest_store_version) is the same as the latest version in the buildinfo ($latest_buildinfo_version)"
     exit 1
 fi
