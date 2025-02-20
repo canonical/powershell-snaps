@@ -3,6 +3,9 @@ name: powershell-preview
 on:
   push:
     branches: preview
+    paths-ignore:
+      - '.gitignore'
+      - 'README'
   pull_request:
     branches: preview
   schedule:
