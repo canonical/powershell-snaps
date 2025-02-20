@@ -15,8 +15,6 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment:
-      name: preview
     steps:
       - uses: actions/checkout@v4
         id: checkout
@@ -30,8 +28,6 @@ jobs:
   needs-store-publishing:
     runs-on: ubuntu-latest
     continue-on-error: true
-    environment:
-      name: preview
     steps:
       - uses: actions/checkout@v4
         id: checkout
