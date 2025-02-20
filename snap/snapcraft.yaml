@@ -55,6 +55,7 @@ parts:
     stage-packages:
       - libicu70
       - liblttng-ust1
+      - libssl-dev
       - zlib1g
     
     override-build: |
