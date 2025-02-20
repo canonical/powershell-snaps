@@ -31,7 +31,7 @@ parts:
     plugin: dump
     source: .
     organize:
-      launcher/powershell-wrapper: bin/powershell-wrapper
+      scripts/powershell-wrapper: bin/powershell-wrapper
       buildinfo-url: meta/buildinfo-url
     prime:
       - bin/powershell-wrapper
