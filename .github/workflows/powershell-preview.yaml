@@ -28,6 +28,7 @@ jobs:
   needs-store-publishing:
     runs-on: ubuntu-latest
     continue-on-error: true
+    if: github.event_name == 'schedule'
     steps:
       - uses: actions/checkout@v4
         id: checkout
