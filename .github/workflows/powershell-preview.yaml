@@ -54,9 +54,18 @@ jobs:
         id: download-artifact
         with:
           name: ${{ env.SNAP_NAME }}
+      - name: Gather filename
+        id: gather-filename
+        shell: bash
+        env:
+          ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}
+        run: |
+          ls -la $ARTIFACT_PATH
+          SNAP_FILE_NAME=$(ls ${ARTIFACT_PATH}/${SNAP_NAME}*.snap)
+          echo "snap_path=${SNAP_FILE_NAME}" >> "$GITHUB_OUTPUT"
       - uses: snapcore/action-publish@v1
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_STORE_TOKEN }}
         with:
-          snap: ${{ steps.download-artifact.outputs.download-path }}
+          snap: ${{ steps.gather-filename.outputs.snap_path }}
           release: edge
