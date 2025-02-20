@@ -1,22 +1,32 @@
-name: powershell-preview
+name: powershell-preview-scheduler
 
 on:
-  push:
-    branches: preview
-    paths-ignore:
-      - '.github/**'
-      - '.gitignore'
-      - 'README'
-  pull_request:
-    branches: preview
+  schedule:
+    - cron: '0 20 * * 1-5'
   workflow_dispatch:
 
 env:
   SNAP_NAME: powershell-preview
 
 jobs:
+  needs-store-publishing:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        id: checkout
+      - name: check if needs publishing
+        id: check
+        shell: bash
+        run: |
+          if ! ./scripts/powershell-compare-versions --snap-name $SNAP_NAME --buildinfo-url $(cat buildinfo-url); then
+            echo "No changes to publish"
+            exit 1
+          fi
   build:
     runs-on: ubuntu-latest
+    needs: needs-store-publishing
+    if: ${{ (github.event_name == 'schedule' && needs.needs-store-publishing.result == 'success') || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: actions/checkout@v4
         id: checkout
@@ -30,7 +40,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: build
-    if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) }}
     environment:
       name: preview
     steps:
