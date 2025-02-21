@@ -2,17 +2,18 @@ name: powershell-preview
 
 on:
   push:
-    branches: preview
-    paths-ignore:
-      - '.github/**'
-      - '.gitignore'
-      - 'README'
+    branches: main
+    paths:
+      - 'powershell-preview/**'
   pull_request:
-    branches: preview
+    branches: main
+    paths:
+      - 'powershell-preview/**'
   workflow_dispatch:
 
 env:
   SNAP_NAME: powershell-preview
+  ARTIFACT_NAME: powershell-preview
 
 jobs:
   build:
@@ -22,10 +23,12 @@ jobs:
         id: checkout
       - uses: snapcore/action-build@v1
         id: build
+        with:
+          path: powershell-preview
       - uses: actions/upload-artifact@v4
         id: upload-artifact
         with:
-          name: ${{ env.SNAP_NAME }}
+          name: ${{ env.ARTIFACT_NAME }}
           path: ${{ steps.build.outputs.snap }}
   publish:
     runs-on: ubuntu-latest
@@ -37,7 +40,7 @@ jobs:
       - uses: actions/download-artifact@v4
         id: download-artifact
         with:
-          name: ${{ env.SNAP_NAME }}
+          name: ${{ env.ARTIFACT_NAME }}
       - name: Gather filename
         id: gather-filename
         shell: bash
