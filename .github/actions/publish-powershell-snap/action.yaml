@@ -1,0 +1,80 @@
+name: 'Publish PowerShell Snap'
+description: 'A sequence of steps to publish the Canonical PowerShell Snap'
+
+inputs:
+  release:
+    description: 'The PowerShell release to be published (lts, stable, preview)'
+    required: true
+  architecture:
+    description: 'The snap architecture to publish (amd64, arm64, ppc64el, s390x)'
+    required: true
+  store-token:
+    description: 'The Snap Store login token'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - id: validate-release
+      shell: bash
+      run: |
+        release="${{ inputs.release }}"
+        case "$release" in
+          lts|stable|preview)
+            echo "Valid release: $release"
+            ;;
+          *)
+            echo "Error: Invalid release. Must be one of: lts, stable, preview."
+            exit 1
+            ;;
+        esac
+    - id: validate-architecture
+      shell: bash
+      run: |
+        architecture="${{ inputs.architecture }}"
+        case "$architecture" in
+          amd64|arm64|ppc64el|s390x)
+            echo "Valid architecture: $architecture"
+            ;;
+          *)
+            echo "Error: Invalid architecture. Must be one of: amd64, arm64, ppc64el, s390x."
+            exit 1
+            ;;
+        esac
+    - id: derive-snap-info
+      shell: bash
+      run: |
+        if [ "${{ inputs.release }}" = "preview" ]; then
+          SNAP_PATH=powershell-preview
+          SNAP_RELEASE_CHANNEL=latest/edge
+        elif [ "${{ inputs.release }}" = "lts" ]; then
+          SNAP_PATH=powershell-lts
+          SNAP_RELEASE_CHANNEL=lts/edge
+        elif [ "${{ inputs.release }}" = "stable" ]; then
+          SNAP_PATH=powershell-stable
+          SNAP_RELEASE_CHANNEL=latest/edge
+        else
+          echo "Error: Invalid release. Must be one of: lts, stable, preview."
+          exit 1
+        fi
+        echo "snap-path=${SNAP_PATH}" >> "$GITHUB_OUTPUT"
+        echo "snap-release-channel=${SNAP_RELEASE_CHANNEL}" >> "$GITHUB_OUTPUT"
+    - uses: actions/download-artifact@v4
+      id: download-artifact
+      with:
+        name: ${{ steps.derive-snap-info.outputs.snap-path }}-${{ inputs.architecture }}
+    - name: Gather filename
+      id: gather-filename
+      shell: bash
+      env:
+        ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}
+      run: |
+        ls -la $ARTIFACT_PATH
+        SNAP_FILE_NAME=$(ls ${ARTIFACT_PATH}/powershell*.snap)
+        echo "snap-path=${SNAP_FILE_NAME}" >> "$GITHUB_OUTPUT"
+    - uses: snapcore/action-publish@v1
+      env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ inputs.store-token }}
+      with:
+        snap: ${{ steps.gather-filename.outputs.snap-path }}
+        release: ${{ steps.derive-snap-info.outputs.snap-release-channel }}

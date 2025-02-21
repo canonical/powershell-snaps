@@ -1,24 +1,25 @@
-name: powershell-preview
+name: powershell-lts
 
 on:
   push:
     branches: main
     paths:
-      - 'powershell-preview/**'
+      - 'powershell-lts/**'
   pull_request:
     branches: main
     paths:
-      - 'powershell-preview/**'
+      - 'powershell-lts/**'
   workflow_dispatch:
 
 jobs:
   build:
     uses: ./.github/workflows/template-build.yaml
     with:
-      release: 'preview'
+      release: 'lts'
   publish:
     uses: ./.github/workflows/template-publish.yaml
     needs: build
-    if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref_name == 'main' }}
+    # if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref_name == 'main' }}
+    if: false
     with:
-      release: 'preview'
+      release: 'lts'

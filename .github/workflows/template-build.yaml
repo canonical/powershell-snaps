@@ -1,0 +1,19 @@
+name: Build PowerShell Snap
+
+on:
+  workflow_call:
+    inputs:
+      release:
+        required: true
+        type: string
+
+jobs:
+  build-powershell-snap:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      id: checkout
+    - name: Build PowerShell Snap
+      uses: ./.github/actions/build-powershell-snap
+      with:
+        release: ${{ inputs.release }}
