@@ -2,11 +2,12 @@ name: powershell-preview-scheduler
 
 on:
   schedule:
-    - cron: '0 20 * * 1-5'
+    - cron: '0 12,18 * * 1-5'
   workflow_dispatch:
 
 env:
   SNAP_NAME: powershell-preview
+  ARTIFACT_NAME: powershell-preview
 
 jobs:
   needs-store-publishing:
@@ -19,7 +20,7 @@ jobs:
         id: check
         shell: bash
         run: |
-          if ! ./scripts/powershell-compare-versions --snap-name $SNAP_NAME --buildinfo-url $(cat buildinfo-url); then
+          if ! ./eng/compare-store-buildinfo-versions.py --snap-name $SNAP_NAME --snap-channel latest/stable --buildinfo-url $(cat buildinfo-url); then
             echo "No changes to publish"
             exit 1
           fi
@@ -32,10 +33,12 @@ jobs:
         id: checkout
       - uses: snapcore/action-build@v1
         id: build
+        with:
+          path: powershell-preview
       - uses: actions/upload-artifact@v4
         id: upload-artifact
         with:
-          name: ${{ env.SNAP_NAME }}
+          name: ${{ env.ARTIFACT_NAME }}
           path: ${{ steps.build.outputs.snap }}
   publish:
     runs-on: ubuntu-latest
@@ -46,7 +49,7 @@ jobs:
       - uses: actions/download-artifact@v4
         id: download-artifact
         with:
-          name: ${{ env.SNAP_NAME }}
+          name: ${{ env.ARTIFACT_NAME }}
       - name: Gather filename
         id: gather-filename
         shell: bash
