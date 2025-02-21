@@ -2,12 +2,12 @@ name: powershell-preview-scheduler
 
 on:
   schedule:
-    - cron: '0 12,18 * * 1-5'
+    - cron: '0 0,12 * * 1-5'
   workflow_dispatch:
 
 env:
   SNAP_NAME: powershell-preview
-  ARTIFACT_NAME: powershell-preview
+  SNAP_DIR: powershell-preview
 
 jobs:
   needs-store-publishing:
@@ -20,48 +20,18 @@ jobs:
         id: check
         shell: bash
         run: |
-          if ! ./eng/compare-store-buildinfo-versions.py --snap-name $SNAP_NAME --snap-channel latest/stable --buildinfo-url $(cat buildinfo-url); then
+          if ! ./eng/compare-store-buildinfo-versions.py --snap-name $SNAP_NAME --snap-channel latest/edge --buildinfo-url $(cat ${SNAP_DIR}/buildinfo-url); then
             echo "No changes to publish"
             exit 1
           fi
   build:
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/template-build.yaml
     needs: needs-store-publishing
-    if: ${{ (github.event_name == 'schedule' && needs.needs-store-publishing.result == 'success') || github.event_name == 'workflow_dispatch' }}
-    steps:
-      - uses: actions/checkout@v4
-        id: checkout
-      - uses: snapcore/action-build@v1
-        id: build
-        with:
-          path: powershell-preview
-      - uses: actions/upload-artifact@v4
-        id: upload-artifact
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-          path: ${{ steps.build.outputs.snap }}
+    if: ${{ needs.needs-store-publishing.result == 'success' }}
+    with:
+      release: 'preview'
   publish:
-    runs-on: ubuntu-latest
+    uses: ./.github/workflows/template-publish.yaml
     needs: build
-    environment:
-      name: preview
-    steps:
-      - uses: actions/download-artifact@v4
-        id: download-artifact
-        with:
-          name: ${{ env.ARTIFACT_NAME }}
-      - name: Gather filename
-        id: gather-filename
-        shell: bash
-        env:
-          ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}
-        run: |
-          ls -la $ARTIFACT_PATH
-          SNAP_FILE_NAME=$(ls ${ARTIFACT_PATH}/${SNAP_NAME}*.snap)
-          echo "snap_path=${SNAP_FILE_NAME}" >> "$GITHUB_OUTPUT"
-      - uses: snapcore/action-publish@v1
-        env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAP_STORE_TOKEN }}
-        with:
-          snap: ${{ steps.gather-filename.outputs.snap_path }}
-          release: edge
+    with:
+      release: 'preview'
