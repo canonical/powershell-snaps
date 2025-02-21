@@ -1,0 +1,51 @@
+name: 'Build PowerShell Snap'
+description: 'A sequence of steps to build a Canonical PowerShell Snap'
+
+inputs:
+  release:
+    description: 'The PowerShell release to be built (lts, stable, preview)'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - id: validate-release
+      shell: bash
+      run: |
+        release="${{ inputs.release }}"
+        case "$release" in
+          lts|stable|preview)
+            echo "Valid release: $release"
+            ;;
+          *)
+            echo "Error: Invalid release. Must be one of: lts, stable, preview."
+            exit 1
+            ;;
+        esac
+    - id: derive-snap-info
+      shell: bash
+      run: |
+        if [ "${{ inputs.release }}" = "preview" ]; then
+          SNAP_PATH=powershell-preview
+        elif [ "${{ inputs.release }}" = "lts" ]; then
+          SNAP_PATH=powershell-lts
+        elif [ "${{ inputs.release }}" = "stable" ]; then
+          SNAP_PATH=powershell-stable
+        else
+          echo "Error: Invalid release. Must be one of: lts, stable, preview."
+          exit 1
+        fi
+        echo "snap-path=${SNAP_PATH}" >> "$GITHUB_OUTPUT"
+    - uses: snapcore/action-build@v1
+      id: build
+      with:
+        path: ${{ steps.derive-snap-info.outputs.snap-path }}
+    - id: get-arch
+      shell: bash
+      run: echo "dpkg-arch=$(dpkg --print-architecture)" >> "$GITHUB_OUTPUT"
+    - uses: actions/upload-artifact@v4
+      id: upload-artifact
+      with:
+        # e.g. powershell-amd64
+        name: ${{ steps.derive-snap-info.outputs.snap-path }}-${{ steps.get-arch.outputs.dpkg-arch }}
+        path: ${{ steps.build.outputs.snap }}
