@@ -12,22 +12,26 @@ env:
 jobs:
   needs-store-publishing:
     runs-on: ubuntu-latest
-    continue-on-error: true
+    outputs:
+      needs-publishing: ${{ steps.check.outputs.needs-publishing }}
     steps:
       - uses: actions/checkout@v4
         id: checkout
-      - name: check if needs publishing
+      - name: Check if Snap Store has latest version
         id: check
         shell: bash
         run: |
-          if ! ./eng/compare-store-buildinfo-versions.py --snap-name $SNAP_NAME --snap-channel latest/edge --buildinfo-url $(cat ${SNAP_DIR}/buildinfo-url); then
-            echo "No changes to publish"
-            exit 1
+          if ./eng/compare-store-buildinfo-versions.py --snap-name $SNAP_NAME --snap-channel latest/edge --buildinfo-url $(cat ${SNAP_DIR}/buildinfo-url); then
+            echo "Needs publishing"
+            echo "needs-publishing=true" >> $GITHUB_OUTPUT
+          else
+            echo "Does not need publishing"
+            echo "needs-publishing=false" >> $GITHUB_OUTPUT
           fi
   build:
     uses: ./.github/workflows/template-build.yaml
     needs: needs-store-publishing
-    if: ${{ needs.needs-store-publishing.result == 'success' }}
+    if: ${{ needs.needs-store-publishing.outputs.needs-publishing == 'true' }}
     with:
       release: 'preview'
   publish:
