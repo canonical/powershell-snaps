@@ -49,4 +49,4 @@ jobs:
         with:
           release: ${{ inputs.release }}
           architecture: ${{ matrix.architecture }}
-          store-token: ${{ secrets.SNAP_STORE_LOGIN }}
+          store-token: ${{ secrets.SNAP_STORE_TOKEN }}
