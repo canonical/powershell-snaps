@@ -22,3 +22,5 @@ jobs:
     if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref_name == 'main' }}
     with:
       release: 'preview'
+    secrets:
+      SNAP_STORE_TOKEN: ${{ secrets.SNAP_STORE_TOKEN }}

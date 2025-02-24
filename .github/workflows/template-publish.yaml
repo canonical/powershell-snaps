@@ -6,6 +6,9 @@ on:
       release:
         required: true
         type: string
+    secrets:
+      SNAP_STORE_TOKEN:
+        required: true
 
 jobs:
   generate-matrix:
