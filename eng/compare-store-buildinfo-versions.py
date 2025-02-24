@@ -1,46 +1,72 @@
 #!/usr/bin/env python3
 
 import argparse
+from enum import Enum
 import re
-import subprocess
 import requests
+import subprocess
 import sys
+
+class VersionComparison(Enum):
+    EQUAL = 0
+    STORE_OLDER = 1
+    STORE_NEWER = 2
+    UNABLE_TO_COMPARE = 3
 
 def usage():
     print("Usage: script.py --snap-name <snap-name> --buildinfo-url <buildinfo-url>")
     sys.exit(1)
 
-def compare_versions(version1, version2):
+def compare_versions(store_version: str, buildinfo_version: str) -> VersionComparison:
+    """
+    Compare two PowerShell versions and return the result.
+
+    :param store_version: The current PowerShell version in the Snap Store
+    :param buildinfo_version: The current PowerShell version in the buildinfo file
+    :return: `VersionComparison.EQUAL` if the versions are the same,
+             `VersionComparison.STORE_OLDER` if the store version is older,
+             `VersionComparison.STORE_NEWER` if the store version is newer
+    """
     version_pattern = r'^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?(\.[0-9]+)?$'
     
-    if not re.match(version_pattern, version1):
-        print(f"Invalid version format: {version1}")
-        return 1
-    if not re.match(version_pattern, version2):
-        print(f"Invalid version format: {version2}")
-        return 1
+    if not re.match(version_pattern, store_version):
+        print(f"Invalid version format: {store_version}")
+        return VersionComparison.UNABLE_TO_COMPARE
+    if not re.match(version_pattern, buildinfo_version):
+        print(f"Invalid version format: {buildinfo_version}")
+        return VersionComparison.UNABLE_TO_COMPARE
 
-    v1 = re.split(r'[.-]', version1)
-    v2 = re.split(r'[.-]', version2)
+    store_version_split = re.split(r'[.-]', store_version)
+    buildinfo_version_split = re.split(r'[.-]', buildinfo_version)
 
     for i in range(3):
-        if int(v1[i]) < int(v2[i]):
-            return 1
-        elif int(v1[i]) > int(v2[i]):
-            return 2
+        if int(store_version_split[i]) < int(buildinfo_version_split[i]):
+            return VersionComparison.STORE_OLDER
+        elif int(store_version_split[i]) > int(buildinfo_version_split[i]):
+            return VersionComparison.STORE_NEWER
 
-    if len(v1) > 3 and len(v2) <= 3:
-        return 1
-    elif len(v1) <= 3 and len(v2) > 3:
-        return 2
+    # store has a pre-release version, while buildinfo does not
+    if len(store_version_split) > 3 and len(buildinfo_version_split) <= 3:
+        return VersionComparison.STORE_OLDER
+    # store does not have a pre-release version, while buildinfo does
+    elif len(store_version_split) <= 3 and len(buildinfo_version_split) > 3:
+        return VersionComparison.STORE_NEWER
 
-    if len(v1) > 3 and len(v2) > 3:
-        if v1[3] < v2[3]:
-            return 1
-        elif v1[3] > v2[3]:
-            return 2
+    # both the store and buildinfo have pre-release versions
+    if len(store_version_split) > 3 and len(buildinfo_version_split) > 3:
+        if store_version_split[3] < buildinfo_version_split[3]:
+            return VersionComparison.STORE_OLDER
+        elif store_version_split[3] > buildinfo_version_split[3]:
+            return VersionComparison.STORE_NEWER
+        else:
+            # both pre-release types are the same (alpha, preview, rc, etc.)
+            # now compare the pre-release version
+            if store_version_split[4] < buildinfo_version_split[4]:
+                return VersionComparison.STORE_OLDER
+            elif store_version_split[4] > buildinfo_version_split[4]:
+                return VersionComparison.STORE_NEWER
 
-    return 0
+    return VersionComparison.EQUAL
 
 def main():
     parser = argparse.ArgumentParser(description='Compare versions.')
@@ -78,14 +104,17 @@ def main():
 
     result = compare_versions(latest_store_version, latest_buildinfo_version)
 
-    if result == 1:
+    if result == VersionComparison.STORE_OLDER:
         print(f"The latest version in the store ({latest_store_version}) is older than the latest version in the buildinfo ({latest_buildinfo_version})")
         sys.exit(0)
-    elif result == 2:
+    elif result == VersionComparison.STORE_NEWER:
         print(f"The latest version in the store ({latest_store_version}) is newer than the latest version in the buildinfo ({latest_buildinfo_version})")
         sys.exit(1)
-    else:
+    elif result == VersionComparison.EQUAL:
         print(f"The latest version in the store ({latest_store_version}) is the same as the latest version in the buildinfo ({latest_buildinfo_version})")
+        sys.exit(1)
+    else:
+        print("Unable to compare the versions")
         sys.exit(1)
 
 if __name__ == "__main__":
