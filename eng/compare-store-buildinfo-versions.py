@@ -68,16 +68,25 @@ def compare_versions(store_version: str, buildinfo_version: str) -> VersionCompa
 
     return VersionComparison.EQUAL
 
+def print_result(result: str, output_file: str | None):
+    print(result)
+    if (output_file):
+        with open(output_file, 'w') as f:
+            f.write(result)
+            f.write('\n')
+
 def main():
     parser = argparse.ArgumentParser(description='Compare versions.')
     parser.add_argument('--snap-name', required=True, help='Snap name')
     parser.add_argument('--snap-channel', required=True, help='Snap channel')
     parser.add_argument('--buildinfo-url', required=True, help='Buildinfo URL')
+    parser.add_argument('--output-file', required=False, help='File to print script output to')
     args = parser.parse_args()
 
     snap_name = args.snap_name
     snap_channel = args.snap_channel
     buildinfo_url = args.buildinfo_url
+    output_file = args.output_file
 
     try:
         latest_store_version = subprocess.check_output(
@@ -105,16 +114,20 @@ def main():
     result = compare_versions(latest_store_version, latest_buildinfo_version)
 
     if result == VersionComparison.STORE_OLDER:
-        print(f"The latest version in the store ({latest_store_version}) is older than the latest version in the buildinfo ({latest_buildinfo_version})")
+        result = f"The latest version in the store ({latest_store_version}) is older than the latest version in the buildinfo ({latest_buildinfo_version})"
+        print_result(result, output_file)
         sys.exit(0)
     elif result == VersionComparison.STORE_NEWER:
-        print(f"The latest version in the store ({latest_store_version}) is newer than the latest version in the buildinfo ({latest_buildinfo_version})")
+        result = f"The latest version in the store ({latest_store_version}) is newer than the latest version in the buildinfo ({latest_buildinfo_version})"
+        print_result(result, output_file)
         sys.exit(1)
     elif result == VersionComparison.EQUAL:
-        print(f"The latest version in the store ({latest_store_version}) is the same as the latest version in the buildinfo ({latest_buildinfo_version})")
+        result = f"The latest version in the store ({latest_store_version}) is the same as the latest version in the buildinfo ({latest_buildinfo_version})"
+        print_result(result, output_file)
         sys.exit(1)
     else:
-        print("Unable to compare the versions")
+        result = "Unable to compare the versions"
+        print_result(result, output_file)
         sys.exit(1)
 
 if __name__ == "__main__":

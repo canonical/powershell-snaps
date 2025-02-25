@@ -46,16 +46,13 @@ jobs:
       - name: Check if Snap Store has latest version
         id: check
         shell: bash
-        continue-on-error: true
         run: |
           # Run the script and capture the output
           output_file=$(mktemp)
-          ./eng/compare-store-buildinfo-versions.py --snap-name ${{ steps.derive-snap-info.outputs.snap-name }} \
+          if ./eng/compare-store-buildinfo-versions.py --snap-name ${{ steps.derive-snap-info.outputs.snap-name }} \
               --snap-channel ${{ steps.derive-snap-info.outputs.snap-release-channel }} \
-              --buildinfo-url "$(cat "${{ steps.derive-snap-info.outputs.snap-path }}/buildinfo-url")" 2>&1 | tee "$output_file" >&2
-          exit_code=${PIPESTATUS[0]}
-
-          if [ "$exit_code" -eq 0 ]; then
+              --buildinfo-url "$(cat "${{ steps.derive-snap-info.outputs.snap-path }}/buildinfo-url")" \
+              --output-file "$output_file"; then
               echo "Needs publishing"
               echo "needs-publishing=true" >> $GITHUB_OUTPUT
               echo "emoji=:white_check_mark:" >> $GITHUB_OUTPUT
@@ -64,7 +61,6 @@ jobs:
               echo "needs-publishing=false" >> $GITHUB_OUTPUT
               echo "emoji=:no_entry:" >> $GITHUB_OUTPUT
           fi
-
           echo "script-output=$(cat "$output_file")" >> $GITHUB_OUTPUT
       - name: Send Mattermost notification
         id: mattermost-notification
