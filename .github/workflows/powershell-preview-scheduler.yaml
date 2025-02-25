@@ -11,45 +11,11 @@ env:
 
 jobs:
   needs-store-publishing:
-    runs-on: ubuntu-latest
-    outputs:
-      needs-publishing: ${{ steps.check.outputs.needs-publishing }}
-    steps:
-      - uses: actions/checkout@v4
-        id: checkout
-      - name: Check if Snap Store has latest version
-        id: check
-        shell: bash
-        run: |
-          # Run the script and capture the output
-          output_file=$(mktemp)
-          ./eng/compare-store-buildinfo-versions.py --snap-name "$SNAP_NAME" \
-              --snap-channel latest/edge --buildinfo-url "$(cat "${SNAP_DIR}/buildinfo-url")" 2>&1 | tee "$output_file" >&2
-          exit_code=${PIPESTATUS[0]}
-
-          if [ "$exit_code" -eq 0 ]; then
-              echo "Needs publishing"
-              echo "needs-publishing=true" >> $GITHUB_OUTPUT
-              echo "emoji=:white_check_mark:" >> $GITHUB_OUTPUT
-          else
-              echo "Does not need publishing"
-              echo "needs-publishing=false" >> $GITHUB_OUTPUT
-              echo "emoji=:no_entry:" >> $GITHUB_OUTPUT
-          fi
-
-          echo "script-output=$(cat "$output_file")" >> $GITHUB_OUTPUT
-      - name: Send Mattermost notification
-        id: mattermost-notification
-        uses: mattermost/action-mattermost-notify@master
-        with:
-          MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
-          MATTERMOST_CHANNEL: 'powershell-notifications'
-          TEXT: |
-            The latest version of **${{ env.SNAP_DIR }}** has been checked.
-            ```
-            ${{ steps.check.outputs.script-output }}
-            ```
-            Needs publishing: ${{ steps.check.outputs.emoji }}
+    uses: ./.github/workflows/template-scheduler-needs-publishing.yaml
+    with:
+      release: 'preview'
+    secrets:
+      MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
   build:
     uses: ./.github/workflows/template-build.yaml
     needs: needs-store-publishing
