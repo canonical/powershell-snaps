@@ -75,9 +75,12 @@ runs:
         sudo apt install --yes dotnet9
         sudo snap install --dangerous --classic ${SNAP_PATH}
 
+        POWERSHELL=$(ls /snap/bin/powershell*)
         git clone https://github.com/powershell/powershell pwsh-repo
 
         pushd pwsh-repo
+        git checkout "v$($POWERSHELL -Command "\$PSVersionTable.PSVersion.ToString()")"
+        git apply --verbose ../eng/patches/*.patch
         target_framework=$(awk -F'[<>]' '/<TargetFramework>/{print $3}' PowerShell.Common.props)
         latest_dotnet_sdk_version=$(/usr/bin/dotnet --list-sdks | cut -d ' ' -f 1 | tail -n 1)
         jq '.sdk.version = "'$latest_dotnet_sdk_version'"' global.json > tmp.json
@@ -89,8 +92,6 @@ runs:
         \$ErrorActionPreference = 'Stop'
         try {
             cd pwsh-repo
-            git checkout "v\$(\$PSVersionTable.PSVersion.ToString())"
-            git apply --verbose ../eng/patches/*.patch
 
             Import-Module ./build.psm1
             Restore-PSOptions -PSOptionsPath /snap/powershell*/current/opt/powershell/psoptions.json
@@ -106,6 +107,5 @@ runs:
         }
         EOF
 
-        POWERSHELL=$(ls /snap/bin/powershell*)
         $POWERSHELL -File pwsh-script
 
