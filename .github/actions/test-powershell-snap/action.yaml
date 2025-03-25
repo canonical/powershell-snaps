@@ -75,16 +75,24 @@ runs:
         git clone https://github.com/powershell/powershell pwsh-repo
 
         cat <<EOF > "pwsh-script"
-        cd pwsh-repo
+        # Set error action preference to stop on errors
+        \$ErrorActionPreference = 'Stop'
+        try {
+            cd pwsh-repo
 
-        Import-Module ./build.psm1
-        Restore-PSOptions -PSOptionsPath /snap/powershell*/current/opt/powershell/psoptions.json
-        $options = (Get-PSOptions)
+            Import-Module ./build.psm1
+            Restore-PSOptions -PSOptionsPath /snap/powershell*/current/opt/powershell/psoptions.json
 
-        $options.Output = (ls /snap/powershell*/current/opt/powershell/pwsh)
-        Set-PSOptions = $options
-
-        Start-PSPester -ThrowOnFailure
+            \$options = (Get-PSOptions)
+            git checkout "v\$(\$PSVersionTable.PSVersion.ToString())"
+            
+            \$options.Output = (ls /snap/powershell*/current/opt/powershell/pwsh)
+            Set-PSOptions = \$options
+            Start-PSPester -ThrowOnFailure
+        } catch {
+            Write-Error "An error occurred: \$_"
+            exit 1
+        }
         EOF
 
         POWERSHELL=$(ls /snap/bin/powershell*)
