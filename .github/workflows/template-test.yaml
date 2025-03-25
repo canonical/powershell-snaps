@@ -28,14 +28,12 @@ jobs:
 
           echo "architectures=$ARCHITECTURES_ARRAY" >> $GITHUB_OUTPUT
 
-  publish:
+  test:
     needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix:
         architecture: ${{ fromJson(needs.generate-matrix.outputs.architectures) }}
-    environment:
-      name: ${{ inputs.release }}
     steps:
       - uses: actions/checkout@v4
         id: checkout
