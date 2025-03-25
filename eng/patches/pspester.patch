@@ -1,0 +1,31 @@
+diff --git a/build.psm1 b/build.psm1
+index d03e763e4..db32ab77f 100644
+--- a/build.psm1
++++ b/build.psm1
+@@ -959,8 +959,9 @@ function Restore-PSPester
+ {
+     param(
+         [ValidateNotNullOrEmpty()]
+-        [string] $Destination = ([IO.Path]::Combine((Split-Path (Get-PSOptions -DefaultToNew).Output), "Modules"))
++        [string] $Destination = "$HOME/.local/share/powershell/Modules"
+     )
++    mkdir -p $Destination
+     Save-Module -Name Pester -Path $Destination -Repository PSGallery -MaximumVersion 4.99
+ }
+ 
+diff --git a/nuget.config b/nuget.config
+deleted file mode 100644
+index 388a65572..000000000
+--- a/nuget.config
++++ /dev/null
+@@ -1,10 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<configuration>
+-  <packageSources>
+-    <clear />
+-    <add key="powershell" value="https://pkgs.dev.azure.com/powershell/PowerShell/_packaging/PowerShell/nuget/v3/index.json" />
+-  </packageSources>
+-  <disabledPackageSources>
+-    <clear />
+-  </disabledPackageSources>
+-</configuration>

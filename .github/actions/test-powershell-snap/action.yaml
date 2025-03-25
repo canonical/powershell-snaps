@@ -79,6 +79,7 @@ runs:
         \$ErrorActionPreference = 'Stop'
         try {
             cd pwsh-repo
+            git apply ../eng/patches/*.patch
 
             Import-Module ./build.psm1
             Restore-PSOptions -PSOptionsPath /snap/powershell*/current/opt/powershell/psoptions.json
