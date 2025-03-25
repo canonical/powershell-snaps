@@ -12,14 +12,38 @@ on:
   workflow_dispatch:
 
 jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      architectures: ${{ steps.generate-matrix.outputs.architectures }}
+    steps:
+      - name: Generate Dynamic Artifacts Matrix
+        id: generate-matrix
+        shell: bash
+        run: |
+          # Array of enabled architecture for the PowerShell snaps
+          ARCHITECTURES="amd64"
+
+          # First gsub: removes leading and trailing whitespaces
+          # Second gsub: replaces any number of subsequent whitespaces with only one whitespace
+          ARCHITECTURES_ARRAY=$(echo "$ARCHITECTURES" | jq --raw-input --compact-output \
+            'gsub("^\\s+|\\s+$"; "") | gsub("\\s+"; " ") | split(" ")')
+
+          echo "architectures=$ARCHITECTURES_ARRAY" >> $GITHUB_OUTPUT
   build:
     uses: ./.github/workflows/template-build.yaml
+    needs:
+      - generate-matrix
     with:
       release: 'stable'
   publish:
     uses: ./.github/workflows/template-publish.yaml
-    needs: build
+    needs:
+      - generate-matrix
+      - build
     # if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref_name == 'main' }}
-    if: false
     with:
-      release: 'stable'
+      release: 'preview'
+      architecture-matrix: ${{ needs.generate-matrix.outputs.architectures }}
+    secrets:
+      SNAP_STORE_TOKEN: ${{ secrets.SNAP_STORE_TOKEN }}
