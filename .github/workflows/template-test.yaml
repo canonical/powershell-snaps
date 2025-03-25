@@ -1,4 +1,4 @@
-name: Publish PowerShell Snaps
+name: Test PowerShell Snaps
 
 on:
   workflow_call:
@@ -6,9 +6,6 @@ on:
       release:
         required: true
         type: string
-    secrets:
-      SNAP_STORE_TOKEN:
-        required: true
 
 jobs:
   generate-matrix:
@@ -46,10 +43,9 @@ jobs:
         shell: bash
         run: |
           echo "Architectures: ${{ matrix.architecture }}"
-      - name: Publish PowerShell Snaps
-        id: publish
-        uses: ./.github/actions/publish-powershell-snap
+      - name: Test PowerShell Snaps
+        id: test
+        uses: ./.github/actions/test-powershell-snap
         with:
           release: ${{ inputs.release }}
           architecture: ${{ matrix.architecture }}
-          store-token: ${{ secrets.SNAP_STORE_TOKEN }}

@@ -1,0 +1,92 @@
+name: 'Test PowerShell Snap'
+description: 'A sequence of steps to test the Canonical PowerShell Snap'
+
+inputs:
+  release:
+    description: 'The PowerShell release to be tested (lts, stable, preview)'
+    required: true
+  architecture:
+    description: 'The snap architecture to test (amd64, arm64, ppc64el, s390x)'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - id: validate-release
+      shell: bash
+      run: |
+        release="${{ inputs.release }}"
+        case "$release" in
+          lts|stable|preview)
+            echo "Valid release: $release"
+            ;;
+          *)
+            echo "Error: Invalid release. Must be one of: lts, stable, preview."
+            exit 1
+            ;;
+        esac
+    - id: validate-architecture
+      shell: bash
+      run: |
+        architecture="${{ inputs.architecture }}"
+        case "$architecture" in
+          amd64|arm64|ppc64el|s390x)
+            echo "Valid architecture: $architecture"
+            ;;
+          *)
+            echo "Error: Invalid architecture. Must be one of: amd64, arm64, ppc64el, s390x."
+            exit 1
+            ;;
+        esac
+    - id: derive-snap-info
+      shell: bash
+      run: |
+        if [ "${{ inputs.release }}" = "preview" ]; then
+          SNAP_PATH=powershell-preview
+        elif [ "${{ inputs.release }}" = "lts" ]; then
+          SNAP_PATH=powershell-lts
+        elif [ "${{ inputs.release }}" = "stable" ]; then
+          SNAP_PATH=powershell-stable
+        else
+          echo "Error: Invalid release. Must be one of: lts, stable, preview."
+          exit 1
+        fi
+        echo "snap-path=${SNAP_PATH}" >> "$GITHUB_OUTPUT"
+    - uses: actions/download-artifact@v4
+      id: download-artifact
+      with:
+        name: ${{ steps.derive-snap-info.outputs.snap-path }}-${{ inputs.architecture }}
+    - name: Gather filename
+      id: gather-filename
+      shell: bash
+      env:
+        ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}
+      run: |
+        ls -la $ARTIFACT_PATH
+        SNAP_FILE_NAME=$(ls ${ARTIFACT_PATH}/powershell*.snap)
+        echo "snap-path=${SNAP_FILE_NAME}" >> "$GITHUB_OUTPUT"
+    - name: Test PowerShell Snap
+      id: test
+      shell: bash
+      env:
+        SNAP_PATH: ${{ steps.gather-filename.outputs.snap-path }}
+      run: |
+        sudo snap install --dangerous --classic ${SNAP_PATH}
+        git clone https://github.com/powershell/powershell pwsh-repo
+
+        cat <<EOF > "pwsh-script"
+        cd pwsh-repo
+
+        Import-Module ./build.psm1
+        Restore-PSOptions -PSOptionsPath /snap/powershell*/current/opt/powershell/psoptions.json
+        $options = (Get-PSOptions)
+
+        $options.Output = (ls /snap/powershell*/current/opt/powershell/pwsh)
+        Set-PSOptions = $options
+
+        Start-PSPester -ThrowOnFailure
+        EOF
+
+        POWERSHELL=$(ls /snap/bin/powershell*)
+        $POWERSHELL -File pwsh-script
+

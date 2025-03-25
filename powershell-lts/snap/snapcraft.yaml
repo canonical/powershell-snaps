@@ -98,12 +98,14 @@ parts:
         echo "No patches found"
       fi
 
-      /snap/bin/powershell -Command \
-        "Import-Module ${CRAFT_PART_BUILD}/build.psm1; Start-PSBuild -UseNuGetOrg -Runtime ${target_rid} -Configuration Release"
+      /snap/bin/powershell -NonInteractive -Command \
+        "Import-Module ${CRAFT_PART_BUILD}/build.psm1; Start-PSBuild -UseNuGetOrg -Runtime ${target_rid} \
+        -Configuration Release -PSOptionsPath ${CRAFT_PART_BUILD}/psoptions.json"
 
       mkdir --parents ${CRAFT_PART_INSTALL}/opt/powershell
       cp -RLp ${CRAFT_PART_BUILD}/src/powershell-unix/bin/Release/${target_framework}/${target_rid}/publish/* \
         ${CRAFT_PART_INSTALL}/opt/powershell
+      cp -RLp ${CRAFT_PART_BUILD}/psoptions.json ${CRAFT_PART_INSTALL}/opt/powershell
 
       patchelf --force-rpath --set-rpath \$ORIGIN/../../usr/lib/x86_64-linux-gnu:\$ORIGIN/../../lib/x86_64-linux-gnu \
           ${CRAFT_PART_INSTALL}/opt/powershell/pwsh
