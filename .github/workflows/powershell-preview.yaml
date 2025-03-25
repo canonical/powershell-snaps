@@ -2,7 +2,9 @@ name: powershell-preview
 
 on:
   push:
-    branches: main
+    branches:
+      - main
+      - ci/tests
     paths:
       - 'powershell-preview/**'
   pull_request:
@@ -16,9 +18,14 @@ jobs:
     uses: ./.github/workflows/template-build.yaml
     with:
       release: 'preview'
+  test:
+    uses: ./.github/workflows/template-test.yaml
+    needs: build
+    with:
+      release: 'preview'
   publish:
     uses: ./.github/workflows/template-publish.yaml
-    needs: build
+    needs: test
     if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref_name == 'main' }}
     with:
       release: 'preview'
