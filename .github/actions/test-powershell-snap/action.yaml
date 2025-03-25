@@ -85,7 +85,7 @@ runs:
 
             \$options = (Get-PSOptions)
             git checkout "v\$(\$PSVersionTable.PSVersion.ToString())"
-            git apply ../eng/patches/*.patch
+            git apply --verbose ../eng/patches/*.patch
             
             \$options.Output = (ls /snap/powershell*/current/opt/powershell/pwsh)
             Set-PSOptions \$options
