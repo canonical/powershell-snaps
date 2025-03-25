@@ -79,15 +79,15 @@ runs:
         \$ErrorActionPreference = 'Stop'
         try {
             cd pwsh-repo
+            git checkout "v\$(\$PSVersionTable.PSVersion.ToString())"
+            git apply --verbose ../eng/patches/*.patch
 
             Import-Module ./build.psm1
             Restore-PSOptions -PSOptionsPath /snap/powershell*/current/opt/powershell/psoptions.json
 
             \$options = (Get-PSOptions)
-            git checkout "v\$(\$PSVersionTable.PSVersion.ToString())"
-            git apply --verbose ../eng/patches/*.patch
-            
             \$options.Output = (ls /snap/powershell*/current/opt/powershell/pwsh)
+
             Set-PSOptions \$options
             Start-PSPester -ThrowOnFailure
         } catch {
