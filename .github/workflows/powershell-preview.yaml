@@ -15,23 +15,7 @@ on:
 
 jobs:
   generate-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      architectures: ${{ steps.generate-matrix.outputs.architectures }}
-    steps:
-      - name: Generate Dynamic Artifacts Matrix
-        id: generate-matrix
-        shell: bash
-        run: |
-          # Array of enabled architecture for the PowerShell snaps
-          ARCHITECTURES="amd64"
-
-          # First gsub: removes leading and trailing whitespaces
-          # Second gsub: replaces any number of subsequent whitespaces with only one whitespace
-          ARCHITECTURES_ARRAY=$(echo "$ARCHITECTURES" | jq --raw-input --compact-output \
-            'gsub("^\\s+|\\s+$"; "") | gsub("\\s+"; " ") | split(" ")')
-
-          echo "architectures=$ARCHITECTURES_ARRAY" >> $GITHUB_OUTPUT
+    uses: ./.github/workflows/template-generate-matrix.yaml
   build:
     uses: ./.github/workflows/template-build.yaml
     needs:

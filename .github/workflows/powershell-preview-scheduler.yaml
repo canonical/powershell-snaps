@@ -10,6 +10,8 @@ env:
   SNAP_DIR: powershell-preview
 
 jobs:
+  generate-matrix:
+    uses: ./.github/workflows/template-generate-matrix.yaml
   needs-store-publishing:
     uses: ./.github/workflows/template-scheduler-needs-publishing.yaml
     with:
@@ -18,14 +20,27 @@ jobs:
       MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
   build:
     uses: ./.github/workflows/template-build.yaml
-    needs: needs-store-publishing
+    needs: 
+      - generate-matrix
+      - needs-store-publishing
     if: ${{ needs.needs-store-publishing.outputs.needs-publishing == 'true' }}
     with:
       release: 'preview'
-  publish:
-    uses: ./.github/workflows/template-publish.yaml
-    needs: build
+  test:
+    uses: ./.github/workflows/template-test.yaml
+    needs:
+      - generate-matrix
+      - build
     with:
       release: 'preview'
+      architecture-matrix: ${{ needs.generate-matrix.outputs.architectures }}
+  publish:
+    uses: ./.github/workflows/template-publish.yaml
+    needs:
+      - generate-matrix
+      - test
+    with:
+      release: 'preview'
+      architecture-matrix: ${{ needs.generate-matrix.outputs.architectures }}
     secrets:
       SNAP_STORE_TOKEN: ${{ secrets.SNAP_STORE_TOKEN }}
