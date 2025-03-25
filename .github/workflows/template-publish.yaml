@@ -6,37 +6,19 @@ on:
       release:
         required: true
         type: string
+      architecture-matrix:
+        required: true
+        type: string
     secrets:
       SNAP_STORE_TOKEN:
         required: true
 
 jobs:
-  generate-matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      artifacts: ${{ steps.generate-matrix.outputs.artifacts }}
-      architectures: ${{ steps.generate-matrix.outputs.architectures }}
-    steps:
-      - name: Generate Dynamic Artifacts Matrix
-        id: generate-matrix
-        shell: bash
-        run: |
-          # Array of enabled architecture for the PowerShell snaps
-          ARCHITECTURES="amd64"
-
-          # First gsub: removes leading and trailing whitespaces
-          # Second gsub: replaces any number of subsequent whitespaces with only one whitespace
-          ARCHITECTURES_ARRAY=$(echo "$ARCHITECTURES" | jq --raw-input --compact-output \
-            'gsub("^\\s+|\\s+$"; "") | gsub("\\s+"; " ") | split(" ")')
-
-          echo "architectures=$ARCHITECTURES_ARRAY" >> $GITHUB_OUTPUT
-
   publish:
-    needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        architecture: ${{ fromJson(needs.generate-matrix.outputs.architectures) }}
+        architecture: ${{ fromJson(inputs.architecture-matrix) }}
     environment:
       name: ${{ inputs.release }}
     steps:
