@@ -71,7 +71,8 @@ runs:
       env:
         SNAP_PATH: ${{ steps.gather-filename.outputs.snap-path }}
       run: |
-        sudo apt install -y dotnet9
+        sudo add-apt-repository --yes ppa:dotnet/backports
+        sudo apt install --yes dotnet9
         sudo snap install --dangerous --classic ${SNAP_PATH}
 
         git clone https://github.com/powershell/powershell pwsh-repo
