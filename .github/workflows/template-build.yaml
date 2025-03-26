@@ -9,7 +9,11 @@ on:
 
 jobs:
   build-powershell-snap:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - [self-hosted, large, jammy, X64]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
       id: checkout

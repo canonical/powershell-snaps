@@ -5,9 +5,6 @@ inputs:
   release:
     description: 'The PowerShell release to be published (lts, stable, preview)'
     required: true
-  architecture:
-    description: 'The snap architecture to publish (amd64, arm64, ppc64el, s390x)'
-    required: true
   store-token:
     description: 'The Snap Store login token'
     required: true
@@ -25,19 +22,6 @@ runs:
             ;;
           *)
             echo "Error: Invalid release. Must be one of: lts, stable, preview."
-            exit 1
-            ;;
-        esac
-    - id: validate-architecture
-      shell: bash
-      run: |
-        architecture="${{ inputs.architecture }}"
-        case "$architecture" in
-          amd64|arm64|ppc64el|s390x)
-            echo "Valid architecture: $architecture"
-            ;;
-          *)
-            echo "Error: Invalid architecture. Must be one of: amd64, arm64, ppc64el, s390x."
             exit 1
             ;;
         esac
@@ -59,10 +43,13 @@ runs:
         fi
         echo "snap-path=${SNAP_PATH}" >> "$GITHUB_OUTPUT"
         echo "snap-release-channel=${SNAP_RELEASE_CHANNEL}" >> "$GITHUB_OUTPUT"
+    - id: get-arch
+      shell: bash
+      run: echo "dpkg-arch=$(dpkg --print-architecture)" >> "$GITHUB_OUTPUT"
     - uses: actions/download-artifact@v4
       id: download-artifact
       with:
-        name: ${{ steps.derive-snap-info.outputs.snap-path }}-${{ inputs.architecture }}
+        name: ${{ steps.derive-snap-info.outputs.snap-path }}-${{ steps.get-arch.outputs.dpkg-arch }}
     - name: Gather filename
       id: gather-filename
       shell: bash

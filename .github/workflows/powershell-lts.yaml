@@ -12,22 +12,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate-matrix:
-    uses: ./.github/workflows/template-generate-matrix.yaml
   build:
     uses: ./.github/workflows/template-build.yaml
-    needs:
-      - generate-matrix
+    with:
+      release: 'lts'
+  test:
+    uses: ./.github/workflows/template-test.yaml
+    needs: build
     with:
       release: 'lts'
   publish:
     uses: ./.github/workflows/template-publish.yaml
-    needs:
-      - generate-matrix
-      - build
+    needs: test
     if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref_name == 'main' }}
     with:
-      release: 'preview'
-      architecture-matrix: ${{ needs.generate-matrix.outputs.architectures }}
+      release: 'lts'
     secrets:
       SNAP_STORE_TOKEN: ${{ secrets.SNAP_STORE_TOKEN }}
