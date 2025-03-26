@@ -6,26 +6,19 @@ on:
       release:
         required: true
         type: string
-      architecture-matrix:
-        required: true
-        type: string
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        architecture: ${{ fromJson(inputs.architecture-matrix) }}
+        os:
+          - [self-hosted, large, jammy, X64]
     steps:
       - uses: actions/checkout@v4
         id: checkout
-      - name: Print matrix
-        shell: bash
-        run: |
-          echo "Architectures: ${{ matrix.architecture }}"
       - name: Test PowerShell Snaps
         id: test
         uses: ./.github/actions/test-powershell-snap
         with:
           release: ${{ inputs.release }}
-          architecture: ${{ matrix.architecture }}
