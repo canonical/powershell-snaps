@@ -2,7 +2,8 @@ name: powershell-lts
 
 on:
   push:
-    branches: main
+    branches: 
+      - main
     paths:
       - 'powershell-lts/**'
   pull_request:

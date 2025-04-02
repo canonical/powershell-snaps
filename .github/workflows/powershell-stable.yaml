@@ -4,9 +4,8 @@ on:
   push:
     branches:
       - main
-      - ci/tests
-    # paths:
-    #   - 'powershell-stable/**'
+    paths:
+      - 'powershell-stable/**'
   pull_request:
     branches: main
     paths:

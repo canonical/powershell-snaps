@@ -2,7 +2,8 @@ name: powershell-preview
 
 on:
   push:
-    branches: main
+    branches: 
+      - main
     paths:
       - 'powershell-preview/**'
   pull_request:
