@@ -1,4 +1,4 @@
-name: powershell-preview-scheduler
+name: powershell-lts-scheduler
 
 on:
   schedule:
@@ -9,7 +9,7 @@ jobs:
   needs-store-publishing:
     uses: ./.github/workflows/template-scheduler-needs-publishing.yaml
     with:
-      release: 'preview'
+      release: 'lts'
     secrets:
       MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
   build:
@@ -17,16 +17,16 @@ jobs:
     needs: needs-store-publishing
     if: ${{ needs.needs-store-publishing.outputs.needs-publishing == 'true' }}
     with:
-      release: 'preview'
+      release: 'lts'
   test:
     uses: ./.github/workflows/template-test.yaml
     needs: build
     with:
-      release: 'preview'
+      release: 'lts'
   publish:
     uses: ./.github/workflows/template-publish.yaml
     needs: test
     with:
-      release: 'preview'
+      release: 'lts'
     secrets:
       SNAP_STORE_TOKEN: ${{ secrets.SNAP_STORE_TOKEN }}
