@@ -57,7 +57,7 @@ runs:
         ARTIFACT_PATH: ${{ steps.download-artifact.outputs.download-path }}
       run: |
         ls -la $ARTIFACT_PATH
-        SNAP_FILE_NAME=$(ls ${ARTIFACT_PATH}/powershell*.snap)
+        SNAP_FILE_NAME=$(find ${ARTIFACT_PATH} -name 'powershell*.snap')
         echo "snap-path=${SNAP_FILE_NAME}" >> "$GITHUB_OUTPUT"
     - uses: snapcore/action-publish@v1
       env:
