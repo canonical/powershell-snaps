@@ -54,7 +54,7 @@ runs:
 
         POWERSHELL=$(find /snap/bin -name 'powershell*')
         LATEST_DOTNET_SDK_VERSION=$(/usr/bin/dotnet --version)
-        
+
         git clone https://github.com/powershell/powershell pwsh-repo
 
         pushd pwsh-repo
@@ -69,5 +69,5 @@ runs:
 
         popd
 
-        $POWERSHELL -File ./eng/test/pwsh-script
+        $POWERSHELL -File ./eng/test/test-pwsh.ps1
 
