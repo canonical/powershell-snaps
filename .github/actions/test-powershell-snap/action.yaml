@@ -48,8 +48,8 @@ runs:
       env:
         SNAP_PATH: ${{ steps.gather-filename.outputs.snap-path }}
       run: |
-        sudo add-apt-repository --yes ppa:dotnet/backports
-        sudo apt install --yes dotnet9
+        sudo add-apt-repository --yes ppa:dotnet/previews
+        sudo apt install --yes dotnet10
         sudo snap install --dangerous --classic ${SNAP_PATH}
 
         POWERSHELL=$(find /snap/bin -name 'powershell*')
