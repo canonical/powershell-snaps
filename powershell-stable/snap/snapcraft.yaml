@@ -83,7 +83,9 @@ parts:
       craftctl set version="$latest_version"
 
       target_framework=$(awk -F'[<>]' '/<TargetFramework>/{print $3}' PowerShell.Common.props)
-      rm global.json
+      latest_dotnet_sdk_version=$(/usr/bin/dotnet --list-sdks | cut -d ' ' -f 1 | tail -n 1)
+      jq '.sdk.version = "'$latest_dotnet_sdk_version'"' ${CRAFT_PART_BUILD}/global.json > tmp.json
+      mv tmp.json ${CRAFT_PART_BUILD}/global.json
 
       /snap/bin/powershell -NonInteractive -Command \
         "Import-Module ${CRAFT_PART_BUILD}/build.psm1; Start-PSBuild -UseNuGetOrg -Runtime ${target_rid} \
