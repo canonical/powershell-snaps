@@ -13,7 +13,7 @@ confinement: classic
 
 package-repositories:
  - type: apt
-   ppa: dotnet/backports
+   ppa: dotnet/previews
    priority: always
 
 architectures:
@@ -45,7 +45,7 @@ parts:
     build-attributes:
       - enable-patchelf
     build-packages:
-      - dotnet-sdk-9.0
+      - dotnet-sdk-10.0
       - git
       - jq
       - libicu70
