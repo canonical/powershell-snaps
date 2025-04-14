@@ -58,10 +58,7 @@ runs:
         pushd pwsh-repo
         git checkout "v$($POWERSHELL -Command "\$PSVersionTable.PSVersion.ToString()")"
         git apply --verbose ../eng/test/*.patch
-        target_framework=$(awk -F'[<>]' '/<TargetFramework>/{print $3}' PowerShell.Common.props)
-        latest_dotnet_sdk_version=$(/usr/bin/dotnet --version)
-        jq '.sdk.version = "'$latest_dotnet_sdk_version'"' global.json > tmp.json
-        mv tmp.json global.json
+        rm global.json
         popd
 
         $POWERSHELL -File ./eng/test/pwsh-script
