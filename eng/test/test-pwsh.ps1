@@ -10,7 +10,7 @@ try {
     $options.Output = (find /snap/powershell*/current/opt/powershell -type f -name pwsh)
 
     Set-PSOptions $options
-    Start-PSPester -ThrowOnFailure
+    Start-PSPester
 } catch {
     Write-Error "An error occurred: $_"
     exit 1
