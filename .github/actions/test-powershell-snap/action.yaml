@@ -48,8 +48,22 @@ runs:
       env:
         SNAP_PATH: ${{ steps.gather-filename.outputs.snap-path }}
       run: |
-        sudo add-apt-repository --yes ppa:dotnet/previews
-        sudo apt install --yes dotnet10
+        if [ "${{ inputs.release }}" = "preview" ]; then
+          SNAP_PATH=powershell-preview
+          sudo add-apt-repository --yes ppa:dotnet/previews
+          sudo apt install --yes dotnet10
+        elif [ "${{ inputs.release }}" = "lts" ]; then
+          SNAP_PATH=powershell-lts
+          sudo apt install --yes dotnet8
+        elif [ "${{ inputs.release }}" = "stable" ]; then
+          SNAP_PATH=powershell-stable
+          sudo add-apt-repository --yes ppa:dotnet/backports
+          sudo apt install --yes dotnet9
+        else
+          echo "Error: Invalid release. Must be one of: lts, stable, preview."
+          exit 1
+        fi
+
         sudo snap install --dangerous --classic ${SNAP_PATH}
 
         POWERSHELL=$(find /snap/bin -name 'powershell*')
