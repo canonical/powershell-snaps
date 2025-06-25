@@ -50,12 +50,13 @@ runs:
       run: |
         if [ "${{ inputs.release }}" = "preview" ]; then
           sudo add-apt-repository --yes ppa:dotnet/previews
-          sudo apt install --yes dotnet10
+          sudo apt-get install --yes dotnet10
         elif [ "${{ inputs.release }}" = "lts" ]; then
-          sudo apt install --yes dotnet8
+          sudo apt-get update
+          sudo apt-get install --yes dotnet8
         elif [ "${{ inputs.release }}" = "stable" ]; then
           sudo add-apt-repository --yes ppa:dotnet/backports
-          sudo apt install --yes dotnet9
+          sudo apt-get install --yes dotnet9
         else
           echo "Error: Invalid release. Must be one of: lts, stable, preview."
           exit 1
