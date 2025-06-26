@@ -30,6 +30,15 @@ parts:
   launcher:
     plugin: dump
     source: .
+    override-build: |
+      craftctl default
+      if [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
+        sed -i 's|@LAUNCHER@|"$SNAP/usr/lib/dotnet/dotnet" "$SNAP/opt/powershell/pwsh.dll"|' \
+            ${CRAFT_PART_INSTALL}/scripts/powershell-wrapper
+      else
+        sed -i 's|@LAUNCHER@|"$SNAP/opt/powershell/pwsh"|' \
+            ${CRAFT_PART_INSTALL}/scripts/powershell-wrapper
+      fi
     organize:
       scripts/powershell-wrapper: bin/powershell-wrapper
       buildinfo-url: meta/buildinfo-url
