@@ -1,7 +1,6 @@
-
 [Desktop Entry]
-Name=PowerShell Preview
-Exec=powershell-preview
+Name=PowerShell
+Exec=powershell
 Type=Application
 Terminal=true
 Categories=ConsoleOnly;System
