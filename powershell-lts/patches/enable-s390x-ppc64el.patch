@@ -1,6 +1,5 @@
-From fc864cc52d9448d4bd3776c57dbcd424c92670a8 Mon Sep 17 00:00:00 2001
 From: Mateus Rodrigues de Morais <mateus.morais@canonical.com>
-Date: Mon, 16 Jun 2025 16:41:09 -0300
+Date: Mon, 09 Jul 2025 13:10:00 -0300
 Subject: [PATCH] feat: add support for s390x and ppc64le to build script
 
 ---
@@ -65,16 +64,7 @@ index ffaf7b02f9d..378bdc3f833 100644
          $Arguments += "/property:PublishReadyToRun=false"
      }
  
-@@ -772,7 +782,7 @@ function Switch-PSNugetConfig {
-     } elseif ( $Source -eq 'NuGetOnly') {
-         New-NugetConfigFile -NugetPackageSource $nugetorg   -Destination "$PSScriptRoot/" @extraParams
-         New-NugetConfigFile -NugetPackageSource $gallery                -Destination "$PSScriptRoot/src/Modules/" @extraParams
--        New-NugetConfigFile -NugetPackageSource $gallery                -Destination "$PSScriptRoot/test/tools/Modules/" @extraParams        
-+        New-NugetConfigFile -NugetPackageSource $gallery                -Destination "$PSScriptRoot/test/tools/Modules/" @extraParams
-     } elseif ( $Source -eq 'Private') {
-         $powerShellPackages = [NugetPackageSource] @{Url = 'https://pkgs.dev.azure.com/powershell/PowerShell/_packaging/PowerShell/nuget/v3/index.json'; Name = 'powershell' }
- 
-@@ -997,9 +1007,13 @@ function New-PSOptions {
+@@ -990,9 +1000,13 @@ function New-PSOptions {
                       "fxdependent-noopt-linux-musl-x64",
                       "fxdependent-linux-x64",
                       "fxdependent-linux-arm64",
