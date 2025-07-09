@@ -116,7 +116,7 @@ parts:
 
       /snap/bin/powershell -NonInteractive -Command \
         "Import-Module ${CRAFT_PART_BUILD}/build.psm1; \
-         Start-PSBuild -UseNuGetOrg -Runtime ${target_rid} -Configuration Release \
+         Start-PSBuild -UseNuGetOrg -Runtime ${pwsh_build_runtime} -Configuration Release \
           -PSOptionsPath ${CRAFT_PART_BUILD}/psoptions.json -ReleaseTag ${latest_release_tag}"
 
       mkdir --parents ${CRAFT_PART_INSTALL}/opt/powershell
