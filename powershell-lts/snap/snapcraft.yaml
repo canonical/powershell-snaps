@@ -25,6 +25,15 @@ parts:
   launcher:
     plugin: dump
     source: .
+    override-build: |
+      craftctl default
+      if [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
+        sed -i 's|@LAUNCHER@|"$SNAP/usr/lib/dotnet/dotnet" "$SNAP/opt/powershell/pwsh.dll"|' \
+            ${CRAFT_PART_INSTALL}/scripts/powershell-wrapper
+      else
+        sed -i 's|@LAUNCHER@|"$SNAP/opt/powershell/pwsh"|' \
+            ${CRAFT_PART_INSTALL}/scripts/powershell-wrapper
+      fi
     organize:
       scripts/powershell-wrapper: bin/powershell-wrapper
       buildinfo-url: meta/buildinfo-url
@@ -56,7 +65,7 @@ parts:
       - libicu70
       - patchelf
     build-snaps:
-      - powershell
+      - powershell/latest/edge
     stage-packages:
       - libicu70
       - liblttng-ust1
@@ -69,12 +78,16 @@ parts:
 
       if [ "${CRAFT_ARCH_BUILD_FOR}" = "amd64" ]; then
         target_rid=linux-x64
+        pwsh_build_runtime=linux-x64
       elif [ "${CRAFT_ARCH_BUILD_FOR}" = "arm64" ]; then
         target_rid=linux-arm64
+        pwsh_build_runtime=linux-arm64
       elif [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ]; then
         target_rid=linux-ppc64le
+        pwsh_build_runtime=fxdependent-linux-ppc64le
       elif [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
         target_rid=linux-s390x
+        pwsh_build_runtime=fxdependent-linux-s390x
       else
         echo "Unknown architecture (${CRAFT_ARCH_BUILD_FOR})"
         exit 1
@@ -108,8 +121,45 @@ parts:
         ${CRAFT_PART_INSTALL}/opt/powershell
       cp -RLp ${CRAFT_PART_BUILD}/psoptions.json ${CRAFT_PART_INSTALL}/opt/powershell
 
-      patchelf --force-rpath --set-rpath \$ORIGIN/../../usr/lib/x86_64-linux-gnu:\$ORIGIN/../../lib/x86_64-linux-gnu \
-          ${CRAFT_PART_INSTALL}/opt/powershell/pwsh
+      if [ "${CRAFT_ARCH_BUILD_FOR}" = "amd64" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "arm64" ]; then
+        patchelf --force-rpath --set-rpath \
+            \$ORIGIN/../../usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
+            ${CRAFT_PART_INSTALL}/opt/powershell/pwsh
+      fi
+
+  libpsl:
+    after: [powershell]
+    plugin: nil
+    source: https://github.com/powershell/powershell-native.git
+    source-type: git
+    build-attributes:
+      - enable-patchelf
+    build-packages:
+      - cmake
+    override-build: |
+      if [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
+        cd src/libpsl-native
+        cmake -DCMAKE_BUILD_TYPE=Release .
+        make -j$(nproc)
+
+        mkdir -p ${CRAFT_PART_INSTALL}/opt/powershell
+        cp ../powershell-unix/libpsl-native.so ${CRAFT_PART_INSTALL}/opt/powershell
+      fi
+
+  prereqs:
+    after: [libpsl]
+    plugin: nil
+    stage-packages:
+      - dotnet-runtime-8.0
+    override-stage: |
+      if [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
+        patchelf --force-rpath --set-rpath \
+            \$ORIGIN/../${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../../lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
+            ${CRAFT_PART_INSTALL}/usr/lib/dotnet/dotnet
+      else
+        rm -rf ${CRAFT_PART_INSTALL}/usr/lib/dotnet
+      fi
+      craftctl default
 
 apps:
   powershell:
