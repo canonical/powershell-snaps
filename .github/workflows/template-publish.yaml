@@ -16,7 +16,10 @@ jobs:
     strategy:
       matrix:
         os:
-          - [self-hosted, large, jammy, X64]
+          - [self-hosted, large, jammy, x64]
+          - [self-hosted, large, jammy, arm64]
+          - [self-hosted, large, jammy, s390x]
+          - [self-hosted, large, jammy, ppc64el]
     environment:
       name: ${{ inputs.release }}
     steps:
