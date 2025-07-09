@@ -19,7 +19,7 @@ on:
 
 jobs:
   check-versions:
-    runs-on: [self-hosted, large, noble, x64]
+    runs-on: [self-hosted, linux, large, noble, x64]
     outputs:
       needs-publishing: ${{ steps.check.outputs.needs-publishing }}
     steps:
