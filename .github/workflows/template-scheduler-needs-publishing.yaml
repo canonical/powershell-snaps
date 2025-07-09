@@ -6,6 +6,10 @@ on:
       release:
         required: true
         type: string
+      enable-mattermost-notifications:
+        required: false
+        type: boolean
+        default: true
     outputs:
       needs-publishing:
         value: ${{ jobs.check-versions.outputs.needs-publishing }}

@@ -10,13 +10,24 @@ on:
     branches: main
     paths:
       - 'powershell-preview/**'
+  schedule:
+    - cron: '0 0 * * 1-5'
   workflow_dispatch:
 
 jobs:
+  needs-store-publishing:
+    uses: ./.github/workflows/template-scheduler-needs-publishing.yaml
+    with:
+      release: 'stable'
+      enable-mattermost-notifications: ${{ github.event_name == 'schedule' }}
+    secrets:
+      MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
   build:
     uses: ./.github/workflows/template-build.yaml
     with:
       release: 'preview'
+    needs: needs-store-publishing
+    if: ${{ !(github.event_name == 'schedule' && needs.needs-store-publishing.outputs.needs-publishing == 'false') }}
   test:
     uses: ./.github/workflows/template-test.yaml
     needs: build
@@ -25,7 +36,7 @@ jobs:
   publish:
     uses: ./.github/workflows/template-publish.yaml
     needs: test
-    if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref_name == 'main' }}
+    if: ${{ contains(fromJSON('["push", "workflow_dispatch", "schedule"]'), github.event_name) && github.ref_name == 'main' }}
     with:
       release: 'preview'
     secrets:
