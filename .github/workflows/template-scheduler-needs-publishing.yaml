@@ -69,6 +69,7 @@ jobs:
       - name: Send Mattermost notification
         id: mattermost-notification
         uses: mattermost/action-mattermost-notify@master
+        if: ${{ inputs.enable-mattermost-notifications }}
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
           MATTERMOST_CHANNEL: 'powershell-notifications'
