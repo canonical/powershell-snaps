@@ -55,7 +55,9 @@ parts:
       - -patches
 
   powershell:
-    after: [launcher]
+    after:
+      - launcher
+      - patches
     plugin: nil
     source: https://github.com/powershell/powershell.git
     source-type: git
