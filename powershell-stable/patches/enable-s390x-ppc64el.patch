@@ -65,15 +65,6 @@ index ffaf7b02f9d..378bdc3f833 100644
          $Arguments += "/property:PublishReadyToRun=false"
      }
  
-@@ -772,7 +782,7 @@ function Switch-PSNugetConfig {
-     } elseif ( $Source -eq 'NuGetOnly') {
-         New-NugetConfigFile -NugetPackageSource $nugetorg   -Destination "$PSScriptRoot/" @extraParams
-         New-NugetConfigFile -NugetPackageSource $gallery                -Destination "$PSScriptRoot/src/Modules/" @extraParams
--        New-NugetConfigFile -NugetPackageSource $gallery                -Destination "$PSScriptRoot/test/tools/Modules/" @extraParams        
-+        New-NugetConfigFile -NugetPackageSource $gallery                -Destination "$PSScriptRoot/test/tools/Modules/" @extraParams
-     } elseif ( $Source -eq 'Private') {
-         $powerShellPackages = [NugetPackageSource] @{Url = 'https://pkgs.dev.azure.com/powershell/PowerShell/_packaging/PowerShell/nuget/v3/index.json'; Name = 'powershell' }
- 
 @@ -997,9 +1007,13 @@ function New-PSOptions {
                       "fxdependent-noopt-linux-musl-x64",
                       "fxdependent-linux-x64",
