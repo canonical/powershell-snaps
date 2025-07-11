@@ -153,17 +153,17 @@ parts:
   prereqs:
     after: [libpsl]
     plugin: nil
+    build-attributes:
+      - enable-patchelf
     stage-packages:
-      - dotnet-runtime-8.0
-    override-stage: |
-      if [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
-        patchelf --force-rpath --set-rpath \
-            \$ORIGIN/../${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../../lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
-            ${CRAFT_PART_INSTALL}/usr/lib/dotnet/dotnet
-      else
-        rm -rf ${CRAFT_PART_INSTALL}/usr/lib/dotnet
-      fi
-      craftctl default
+      - libicu70
+      - liblttng-ust1
+      - libssl-dev
+      - zlib1g
+      - to ppc64el:
+        - dotnet-runtime-8.0
+      - to s390x:
+        - dotnet-runtime-8.0
 
 apps:
   powershell:
