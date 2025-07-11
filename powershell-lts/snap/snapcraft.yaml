@@ -150,20 +150,17 @@ parts:
         cp ../powershell-unix/libpsl-native.so ${CRAFT_PART_INSTALL}/opt/powershell
       fi
 
-  prereqs:
+  s390x-ppc64el-prereqs:
     after: [libpsl]
     plugin: nil
+    build-attributes:
+      - enable-patchelf
     stage-packages:
       - dotnet-runtime-8.0
     override-stage: |
       if [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
-        patchelf --force-rpath --set-rpath \
-            \$ORIGIN/../${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../../lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
-            ${CRAFT_PART_INSTALL}/usr/lib/dotnet/dotnet
-      else
-        rm -rf ${CRAFT_PART_INSTALL}/usr/lib/dotnet
+        craftctl default
       fi
-      craftctl default
 
 apps:
   powershell:
