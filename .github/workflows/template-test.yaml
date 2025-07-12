@@ -9,7 +9,6 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         os:
@@ -17,11 +16,12 @@ jobs:
           - [self-hosted, linux, large, noble, arm64]
           - [self-hosted, linux, noble, s390x]
           - [self-hosted, linux, noble, ppc64el]
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-        id: checkout
-      - name: Test PowerShell Snaps
-        id: test
-        uses: ./.github/actions/test-powershell-snap
-        with:
-          release: ${{ inputs.release }}
+    - uses: actions/checkout@v4
+      id: checkout
+    - name: Test PowerShell Snaps
+      id: test
+      uses: ./.github/actions/test-powershell-snap
+      with:
+        release: ${{ inputs.release }}
