@@ -12,7 +12,6 @@ on:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
         os:
@@ -20,14 +19,15 @@ jobs:
           - [self-hosted, linux, large, noble, arm64]
           - [self-hosted, linux, noble, s390x]
           - [self-hosted, linux, noble, ppc64el]
+    runs-on: ${{ matrix.os }}
     environment:
       name: ${{ inputs.release }}
     steps:
-      - uses: actions/checkout@v4
-        id: checkout
-      - name: Publish PowerShell Snaps
-        id: publish
-        uses: ./.github/actions/publish-powershell-snap
-        with:
-          release: ${{ inputs.release }}
-          store-token: ${{ secrets.SNAP_STORE_TOKEN }}
+    - uses: actions/checkout@v4
+      id: checkout
+    - name: Publish PowerShell Snaps
+      id: publish
+      uses: ./.github/actions/publish-powershell-snap
+      with:
+        release: ${{ inputs.release }}
+        store-token: ${{ secrets.SNAP_STORE_TOKEN }}

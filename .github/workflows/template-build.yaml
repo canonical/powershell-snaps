@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  build-powershell-snap:
+  build:
     strategy:
       matrix:
         os:
