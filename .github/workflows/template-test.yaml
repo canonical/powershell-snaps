@@ -13,7 +13,10 @@ jobs:
     strategy:
       matrix:
         os:
-          - [self-hosted, large, jammy, X64]
+          - [self-hosted, linux, large, noble, x64]
+          - [self-hosted, linux, large, noble, arm64]
+          - [self-hosted, linux, noble, s390x]
+          - [self-hosted, linux, noble, ppc64el]
     steps:
       - uses: actions/checkout@v4
         id: checkout

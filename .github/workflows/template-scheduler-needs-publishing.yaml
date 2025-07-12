@@ -6,6 +6,10 @@ on:
       release:
         required: true
         type: string
+      enable-mattermost-notifications:
+        required: false
+        type: boolean
+        default: true
     outputs:
       needs-publishing:
         value: ${{ jobs.check-versions.outputs.needs-publishing }}
@@ -15,7 +19,7 @@ on:
 
 jobs:
   check-versions:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, large, noble, x64]
     outputs:
       needs-publishing: ${{ steps.check.outputs.needs-publishing }}
     steps:
@@ -65,6 +69,7 @@ jobs:
       - name: Send Mattermost notification
         id: mattermost-notification
         uses: mattermost/action-mattermost-notify@master
+        if: ${{ inputs.enable-mattermost-notifications }}
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
           MATTERMOST_CHANNEL: 'powershell-notifications'
