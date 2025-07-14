@@ -133,7 +133,7 @@ parts:
 
       if [ "${CRAFT_ARCH_BUILD_FOR}" = "amd64" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "arm64" ]; then
         patchelf --force-rpath --set-rpath \
-            /snap/core22/current/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
+            /snap/core22/current/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
             ${CRAFT_PART_INSTALL}/opt/powershell/pwsh
       fi
 
@@ -176,7 +176,7 @@ parts:
       craftctl default
       if [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
         patchelf --force-rpath --set-rpath \
-            /snap/core22/current/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
+            /snap/core22/current/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../../lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
             ${CRAFT_STAGE}/usr/lib/dotnet/dotnet
       fi
 
