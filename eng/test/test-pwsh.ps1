@@ -4,19 +4,19 @@ try {
     Set-Location pwsh-repo
 
     Import-Module ./build.psm1
-    Restore-PSOptions -PSOptionsPath /snap/powershell*/current/opt/powershell/psoptions.json
+    Restore-PSOptions -PSOptionsPath "/snap/powershell*/current/opt/powershell/psoptions.json"
 
     $options = (Get-PSOptions)
-    $architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+    $options.Output = (Get-ChildItem -Path "/snap/powershell*/current/opt/powershell" -Recurse -Filter "pwsh").FullName
 
-    if ($architecture -eq 'S390x') {
+    # PSPester runs on a noble machine and PowerShell builds on core22 (jammy).
+    # Therefore, we need to override the runtime from the options file to match that of the runner
+    # to avoid 'nuget restore' issues, since packages like Microsoft.NETCore.App.Runtime targeting
+    # linux-s390x and linux-ppc64el are not available on NuGet.org.
+    if ($options.Runtime -match 's390x') {
         $options.Runtime = 'ubuntu.24.04-s390x'
-        $options.Output = (find /snap/powershell*/current/opt/powershell -type f -name pwsh.dll)
-    } elseif ($architecture -eq 'Ppc64le') {
+    } elseif ($options.Runtime -match 'ppc64le') {
         $options.Runtime = 'ubuntu.24.04-ppc64le'
-        $options.Output = (find /snap/powershell*/current/opt/powershell -type f -name pwsh.dll)
-    } else {
-        $options.Output = (find /snap/powershell*/current/opt/powershell -type f -name pwsh)
     }
 
     Set-PSOptions $options
