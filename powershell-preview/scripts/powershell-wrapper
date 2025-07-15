@@ -6,4 +6,4 @@
 # shellcheck disable=SC2174
 [ -n "$XDG_RUNTIME_DIR" ] && mkdir -p "$XDG_RUNTIME_DIR" -m 700
 
-exec @LAUNCHER@ "$@"
+exec "$SNAP/opt/powershell/pwsh" "$@"
