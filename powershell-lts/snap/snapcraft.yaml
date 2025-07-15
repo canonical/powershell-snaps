@@ -25,15 +25,6 @@ parts:
   launcher:
     plugin: dump
     source: .
-    override-build: |
-      craftctl default
-      if [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
-        sed -i 's|@LAUNCHER@|"$SNAP/usr/lib/dotnet/dotnet" "$SNAP/opt/powershell/pwsh.dll"|' \
-            ${CRAFT_PART_INSTALL}/scripts/powershell-wrapper
-      else
-        sed -i 's|@LAUNCHER@|"$SNAP/opt/powershell/pwsh"|' \
-            ${CRAFT_PART_INSTALL}/scripts/powershell-wrapper
-      fi
     organize:
       scripts/powershell-wrapper: bin/powershell-wrapper
       buildinfo-url: meta/buildinfo-url
@@ -78,16 +69,12 @@ parts:
 
       if [ "${CRAFT_ARCH_BUILD_FOR}" = "amd64" ]; then
         target_rid=linux-x64
-        pwsh_build_runtime=linux-x64
       elif [ "${CRAFT_ARCH_BUILD_FOR}" = "arm64" ]; then
         target_rid=linux-arm64
-        pwsh_build_runtime=linux-arm64
       elif [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ]; then
-        target_rid=linux-ppc64le
-        pwsh_build_runtime=fxdependent-linux-ppc64le
+        target_rid=ubuntu.22.04-ppc64le
       elif [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
-        target_rid=linux-s390x
-        pwsh_build_runtime=fxdependent-linux-s390x
+        target_rid=ubuntu.22.04-s390x
       else
         echo "Unknown architecture (${CRAFT_ARCH_BUILD_FOR})"
         exit 1
@@ -115,7 +102,7 @@ parts:
         "Import-Module ${CRAFT_PART_BUILD}/build.psm1; \
          Start-PSBuild \
           -UseNuGetOrg \
-          -Runtime ${pwsh_build_runtime} \
+          -Runtime ${target_rid} \
           -Configuration Release \
           -PSOptionsPath ${CRAFT_PART_BUILD}/psoptions.json \
           -ReleaseTag ${latest_release_tag}"
@@ -125,11 +112,9 @@ parts:
         ${CRAFT_PART_INSTALL}/opt/powershell
       cp -RLp ${CRAFT_PART_BUILD}/psoptions.json ${CRAFT_PART_INSTALL}/opt/powershell
 
-      if [ "${CRAFT_ARCH_BUILD_FOR}" = "amd64" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "arm64" ]; then
-        patchelf --force-rpath --set-rpath \
-            /snap/core22/current/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
-            ${CRAFT_PART_INSTALL}/opt/powershell/pwsh
-      fi
+      patchelf --force-rpath --set-rpath \
+        /snap/core22/current/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../usr/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
+        ${CRAFT_PART_INSTALL}/opt/powershell/pwsh
 
   libpsl:
     after: [powershell]
@@ -148,30 +133,6 @@ parts:
 
         mkdir -p ${CRAFT_PART_INSTALL}/opt/powershell
         cp ../powershell-unix/libpsl-native.so ${CRAFT_PART_INSTALL}/opt/powershell
-      fi
-
-  prereqs:
-    after: [libpsl]
-    plugin: nil
-    build-attributes:
-      - enable-patchelf
-    build-packages:
-      - patchelf
-    stage-packages:
-      - libicu70
-      - liblttng-ust1
-      - libssl-dev
-      - zlib1g
-      - to ppc64el:
-        - dotnet-runtime-8.0
-      - to s390x:
-        - dotnet-runtime-8.0
-    override-stage: |
-      craftctl default
-      if [ "${CRAFT_ARCH_BUILD_FOR}" = "ppc64el" ] || [ "${CRAFT_ARCH_BUILD_FOR}" = "s390x" ]; then
-        patchelf --force-rpath --set-rpath \
-            /snap/core22/current/lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../${CRAFT_ARCH_TRIPLET_BUILD_FOR}:\$ORIGIN/../../../lib/${CRAFT_ARCH_TRIPLET_BUILD_FOR} \
-            ${CRAFT_STAGE}/usr/lib/dotnet/dotnet
       fi
 
 apps:
