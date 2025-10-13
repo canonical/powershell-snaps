@@ -4,14 +4,17 @@
   PowerShell
 </h1>
 
+<p align="center">
+  <a href="https://snapcraft.io/powershell">
+    <img alt="powershell" src="https://snapcraft.io/powershell/badge.svg" />
+  </a>
+  <a href="https://snapcraft.io/powershell-preview">
+    <img alt="powershell-preview" src="https://snapcraft.io/powershell-preview/badge.svg" />
+  </a>
+</p>
+
 <p align="center"><b>This is the snap for PowerShell</b>, <i>"PowerShell for every system"</i>. It works on Ubuntu, Fedora, Debian, and other major Linux
 distributions.</p>
-
-<!-- Uncomment and modify this when you are provided a build status badge
-<p align="center">
-<a href="https://build.snapcraft.io/user/snapcrafters/fork-and-rename-me"><img src="https://build.snapcraft.io/badge/snapcrafters/fork-and-rename-me.svg" alt="Snap Status"></a>
-</p>
--->
 
 ## Install
 
