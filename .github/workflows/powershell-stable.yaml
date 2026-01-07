@@ -10,16 +10,20 @@ on:
     branches: main
     paths:
       - 'powershell-stable/**'
-  schedule:
-    - cron: '0 0 * * 1-5'
   workflow_dispatch:
+    inputs:
+      scheduled-run:
+        description: 'Run as if triggered by schedule (enables notifications and publishing checks)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   needs-store-publishing:
     uses: ./.github/workflows/template-scheduler-needs-publishing.yaml
     with:
       release: 'stable'
-      enable-mattermost-notifications: ${{ github.event_name == 'schedule' }}
+      enable-mattermost-notifications: ${{ inputs.scheduled-run }}
     secrets:
       MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
   build:
@@ -27,7 +31,7 @@ jobs:
     with:
       release: 'stable'
     needs: needs-store-publishing
-    if: ${{ !(github.event_name == 'schedule' && needs.needs-store-publishing.outputs.needs-publishing == 'false') }}
+    if: ${{ !(inputs.scheduled-run && needs.needs-store-publishing.outputs.needs-publishing == 'false') }}
   test:
     uses: ./.github/workflows/template-test.yaml
     needs: build
@@ -36,7 +40,7 @@ jobs:
   publish:
     uses: ./.github/workflows/template-publish.yaml
     needs: test
-    if: ${{ contains(fromJSON('["push", "workflow_dispatch", "schedule"]'), github.event_name) && github.ref_name == 'main' }}
+    if: ${{ contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref_name == 'main' }}
     with:
       release: 'stable'
     secrets:
