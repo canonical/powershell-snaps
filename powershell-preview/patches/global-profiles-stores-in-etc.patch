@@ -1,0 +1,24 @@
+diff --git a/src/System.Management.Automation/engine/hostifaces/HostUtilities.cs b/src/System.Management.Automation/engine/hostifaces/HostUtilities.cs
+index 003625791..18dbda34f 100644
+--- a/src/System.Management.Automation/engine/hostifaces/HostUtilities.cs
++++ b/src/System.Management.Automation/engine/hostifaces/HostUtilities.cs
+@@ -233,16 +233,9 @@ namespace System.Management.Automation
+         /// <returns>The base path for all users profiles.</returns>
+         private static string GetAllUsersFolderPath(string shellId)
+         {
+-            string folderPath = string.Empty;
+-            try
+-            {
+-                folderPath = Utils.GetApplicationBase(shellId);
+-            }
+-            catch (System.Security.SecurityException)
+-            {
+-            }
+-
+-            return folderPath;
++            string folderPath = Environment.GetEnvironmentVariable("POWERSHELL_COMMON_APPLICATION_DATA");
++            if (!string.IsNullOrEmpty(folderPath)) return folderPath;
++            return "/etc/opt/powershell";
+         }
+         #endregion GetProfileCommands
+ 
