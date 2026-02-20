@@ -5,6 +5,9 @@ inputs:
   release:
     description: 'The PowerShell release to be published (lts, stable, preview)'
     required: true
+  architecture:
+    description: 'The architecture of the snap to be published (amd64, arm64, s390x, ppc64el)'
+    required: true
   store-token:
     description: 'The Snap Store login token'
     required: true
@@ -43,13 +46,10 @@ runs:
         fi
         echo "snap-path=${SNAP_PATH}" >> "$GITHUB_OUTPUT"
         echo "snap-release-channel=${SNAP_RELEASE_CHANNEL}" >> "$GITHUB_OUTPUT"
-    - id: get-arch
-      shell: bash
-      run: echo "dpkg-arch=$(dpkg --print-architecture)" >> "$GITHUB_OUTPUT"
     - uses: actions/download-artifact@v4
       id: download-artifact
       with:
-        name: ${{ steps.derive-snap-info.outputs.snap-path }}-${{ steps.get-arch.outputs.dpkg-arch }}
+        name: ${{ steps.derive-snap-info.outputs.snap-path }}-${{ inputs.architecture }}
     - name: Gather filename
       id: gather-filename
       shell: bash

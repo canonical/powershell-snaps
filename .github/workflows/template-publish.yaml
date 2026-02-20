@@ -14,12 +14,9 @@ jobs:
   publish:
     strategy:
       matrix:
-        os:
-          - [self-hosted, linux, large, noble, x64]
-          - [self-hosted, linux, large, noble, arm64]
-          - [self-hosted, linux, noble, s390x]
-          - [self-hosted, linux, noble, ppc64el]
-    runs-on: ${{ matrix.os }}
+        architecture: [amd64, arm64, s390x, ppc64el]
+    runs-on: ubuntu-latest
+    continue-on-error: true
     environment:
       name: ${{ inputs.release }}
     steps:
@@ -30,4 +27,5 @@ jobs:
       uses: ./.github/actions/publish-powershell-snap
       with:
         release: ${{ inputs.release }}
+        architecture: ${{ matrix.architecture }}
         store-token: ${{ secrets.SNAP_STORE_TOKEN }}
