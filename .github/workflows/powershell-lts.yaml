@@ -23,7 +23,7 @@ jobs:
     uses: ./.github/workflows/template-scheduler-needs-publishing.yaml
     with:
       release: 'lts'
-      enable-mattermost-notifications: ${{ inputs.scheduled-run }}
+      enable-mattermost-notifications: ${{ inputs.scheduled-run || github.event_name != 'workflow_dispatch' }}
     secrets:
       MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
   build:
@@ -31,7 +31,7 @@ jobs:
     with:
       release: 'lts'
     needs: needs-store-publishing
-    if: ${{ !(inputs.scheduled-run && needs.needs-store-publishing.outputs.needs-publishing == 'false') }}
+    if: ${{ !((inputs.scheduled-run || github.event_name != 'workflow_dispatch') && needs.needs-store-publishing.outputs.needs-publishing == 'false') }}
   test:
     uses: ./.github/workflows/template-test.yaml
     needs: build
