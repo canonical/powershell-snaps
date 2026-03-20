@@ -56,7 +56,7 @@ runs:
           sudo apt-get install --yes dotnet8
         elif [ "${{ inputs.release }}" = "stable" ]; then
           sudo add-apt-repository --yes ppa:dotnet/backports
-          sudo apt-get install --yes dotnet9
+          sudo apt-get install --yes dotnet10
         else
           echo "Error: Invalid release. Must be one of: lts, stable, preview."
           exit 1
