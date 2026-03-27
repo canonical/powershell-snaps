@@ -29,7 +29,7 @@ runs:
     - id: get-arch
       shell: bash
       run: echo "dpkg-arch=$(dpkg --print-architecture)" >> "$GITHUB_OUTPUT"
-    - uses: actions/download-artifact@v4
+    - uses: actions/download-artifact@v8
       id: download-artifact
       with:
         name: ${{ steps.derive-snap-info.outputs.snap-path }}-${{ steps.get-arch.outputs.dpkg-arch }}

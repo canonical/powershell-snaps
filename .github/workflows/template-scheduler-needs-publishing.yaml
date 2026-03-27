@@ -23,7 +23,7 @@ jobs:
     outputs:
       needs-publishing: ${{ steps.check.outputs.needs-publishing }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         id: checkout
       - id: derive-snap-info
         shell: bash

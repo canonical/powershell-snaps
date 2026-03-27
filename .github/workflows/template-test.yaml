@@ -18,7 +18,7 @@ jobs:
           - [self-hosted, linux, noble, ppc64el]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
       id: checkout
     - name: Test PowerShell Snaps
       id: test
