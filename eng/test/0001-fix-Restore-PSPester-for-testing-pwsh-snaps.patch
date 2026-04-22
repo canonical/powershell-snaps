@@ -1,0 +1,47 @@
+From 473621b62ca69e00e2c8f29d34f810af7de6d335 Mon Sep 17 00:00:00 2001
+From: Mateus Rodrigues de Morais <mateus.morais@canonical.com>
+Date: Wed, 22 Apr 2026 11:57:37 -0300
+Subject: [PATCH] fix: Restore-PSPester for testing pwsh snaps
+
+---
+ build.psm1   |  6 +++++-
+ nuget.config | 10 ----------
+ 2 files changed, 5 insertions(+), 11 deletions(-)
+ delete mode 100644 nuget.config
+
+diff --git a/build.psm1 b/build.psm1
+index d353eb251..56113a332 100644
+--- a/build.psm1
++++ b/build.psm1
+@@ -1739,7 +1739,11 @@ function Start-PSPester {
+ 
+     if (-not (Get-Module -ListAvailable -Name $Pester -ErrorAction SilentlyContinue | Where-Object { $_.Version -ge "4.2" } ))
+     {
+-        Restore-PSPester
++        $snapModulesLocation = "$HOME/.local/share/powershell/Modules"
++        mkdir -p $snapModulesLocation
++        # We need to change the destination to a writable location because Restore-PSPester uses a read-only
++        # location by default in the context of snaps.
++        Restore-PSPester -Destination $snapModulesLocation
+     }
+ 
+     if ($IncludeFailingTest.IsPresent)
+diff --git a/nuget.config b/nuget.config
+deleted file mode 100644
+index 388a65572..000000000
+--- a/nuget.config
++++ /dev/null
+@@ -1,10 +0,0 @@
+-<?xml version="1.0" encoding="utf-8"?>
+-<configuration>
+-  <packageSources>
+-    <clear />
+-    <add key="powershell" value="https://pkgs.dev.azure.com/powershell/PowerShell/_packaging/PowerShell/nuget/v3/index.json" />
+-  </packageSources>
+-  <disabledPackageSources>
+-    <clear />
+-  </disabledPackageSources>
+-</configuration>
+-- 
+2.43.0
+
