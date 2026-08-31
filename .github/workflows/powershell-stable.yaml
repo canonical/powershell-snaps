@@ -54,7 +54,7 @@ jobs:
         uses: mattermost/action-mattermost-notify@master
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
-          MATTERMOST_CHANNEL: powershell-notifications
+          MATTERMOST_CHANNEL: powershell-gha
           TEXT: |
             :x: **PowerShell Stable Snap Workflow Failed**
 

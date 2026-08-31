@@ -72,7 +72,7 @@ jobs:
         if: ${{ inputs.enable-mattermost-notifications }}
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
-          MATTERMOST_CHANNEL: 'powershell-notifications'
+          MATTERMOST_CHANNEL: 'powershell-gha'
           TEXT: |
             The latest version of **${{ steps.derive-snap-info.outputs.snap-path }}** has been checked.
             ```
