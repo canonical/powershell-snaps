@@ -1,0 +1,19 @@
+name: Validate release channel names
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/powershell-*.yaml'
+      - '.github/workflows/validate-release-channels.yaml'
+      - 'eng/validate-release-channels.py'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Check release inputs
+        run: python3 eng/validate-release-channels.py
