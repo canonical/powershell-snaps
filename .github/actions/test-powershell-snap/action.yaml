@@ -49,7 +49,8 @@ runs:
         SNAP_PATH: ${{ steps.gather-filename.outputs.snap-path }}
       run: |
         if [ "${{ inputs.release }}" = "preview" ]; then
-          sudo add-apt-repository --yes ppa:dotnet/previews
+          # TODO: switch back to ppa:dotnet/previews (and dotnet12) once .NET 12 previews are packaged
+          sudo add-apt-repository --yes ppa:dotnet/backports
           sudo apt-get install --yes dotnet11
         elif [ "${{ inputs.release }}" = "lts" ]; then
           sudo apt-get update
