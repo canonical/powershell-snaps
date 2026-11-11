@@ -13,7 +13,8 @@ confinement: classic
 
 package-repositories:
  - type: apt
-   ppa: dotnet/previews
+   # TODO: switch back to dotnet/previews (and dotnet-sdk-12.0) once .NET 12 previews are packaged
+   ppa: dotnet/backports
    priority: prefer
 
 architectures:
