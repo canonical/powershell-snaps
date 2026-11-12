@@ -9,10 +9,11 @@ try {
     $options = (Get-PSOptions)
     $options.Output = (Get-ChildItem -Path "/snap/powershell*/current/opt/powershell" -Recurse -Filter "pwsh").FullName
 
-    # PSPester runs on a noble machine and PowerShell builds on core22 (jammy).
+    # PSPester runs on a noble machine, while powershell-stable and powershell-preview build on core22 (jammy).
     # Therefore, we need to override the runtime from the options file to match that of the runner
     # to avoid 'nuget restore' issues, since packages like Microsoft.NETCore.App.Runtime targeting
     # linux-s390x and linux-ppc64el are not available on NuGet.org.
+    # powershell-lts builds on core24 (noble), so the override is a no-op for it.
     if ($options.Runtime -match 's390x') {
         $options.Runtime = 'ubuntu.24.04-s390x'
     } elseif ($options.Runtime -match 'ppc64le') {
