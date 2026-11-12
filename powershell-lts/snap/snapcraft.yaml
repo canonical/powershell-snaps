@@ -11,6 +11,11 @@ base: core22
 grade: stable
 confinement: classic
 
+package-repositories:
+ - type: apt
+   ppa: dotnet/backports
+   priority: always
+
 architectures:
   - build-on: [amd64]
     build-for: [amd64]
@@ -50,7 +55,7 @@ parts:
     build-attributes:
       - enable-patchelf
     build-packages:
-      - dotnet-sdk-8.0
+      - dotnet-sdk-10.0
       - git
       - jq
       - libicu70
